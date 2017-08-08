@@ -36,18 +36,9 @@ class SetupRepo(object):
             raise ValueError("Missing key!")
         return SetupRepo(attr_dict)
 
-    def yes_no(self, question):
-        reply = input("{} (y/n):".format(question)).lower().strip()
-        if reply.startswith("y"):
-            return True
-        elif reply.startswith("n"):
-            return False
-        else:
-            return self.yes_no(question)
-
     def okay_to_write(self):
         if os.path.isdir(self.location):
-            return self.yes_no("Overwrite {}?".format(self.location))
+            return yes_no("Overwrite {}?".format(self.location))
         else:
             return True
 
@@ -84,6 +75,16 @@ def read_json_file(filepath):
 def clear_dir(directory):
     if os.path.exists(directory):
         shutil.rmtree(directory)
+
+
+def yes_no(question):
+    reply = input("{} (y/n):".format(question)).lower().strip()
+    if reply.startswith("y"):
+        return True
+    elif reply.startswith("n"):
+        return False
+    else:
+        return yes_no(question)
 
 
 ###############################################################################
