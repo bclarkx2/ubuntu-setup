@@ -4,14 +4,14 @@
         "repo": "git@github.com:bclarkx2/bin.git",
         "script": "",
         "location": "~/bin",
-        "enabled": false
+        "enabled": true
     },
     {
         "name": "dotfiles",
         "repo": "git@github.com:bclarkx2/dotfiles.git",
         "script": "disperse.py",
         "location": "~/dotfiles",
-        "enabled": false
+        "enabled": true
     },
     {
         "name": "sublime",
