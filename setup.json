@@ -1,0 +1,23 @@
+[
+    {
+        "name": "bin",
+        "repo": "git@github.com:bclarkx2/bin.git",
+        "script": "",
+        "location": "~/bin",
+        "enabled": false
+    },
+    {
+        "name": "dotfiles",
+        "repo": "git@github.com:bclarkx2/dotfiles.git",
+        "script": "disperse.py",
+        "location": "~/dotfiles",
+        "enabled": false
+    },
+    {
+        "name": "sublime",
+        "repo": "git@github.com:bclarkx2/sublime-config.git",
+        "script": "",
+        "location": "~/.config/sublime-text-3/Packages/User",
+        "enabled": true
+    }
+]
