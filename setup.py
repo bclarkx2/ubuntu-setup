@@ -53,7 +53,12 @@ class SetupRepo(object):
             return
 
         clear_dir(self.location)
-        git.Repo.clone_from(self.repo, self.location)
+        repo = git.Repo.clone_from(self.repo, self.location, recursive=True)
+
+        # need to checkout to master
+        # TODO allow support for different branches
+        if repo.submodules:
+            checkout_all_submodules_to_master(repo)
 
         self.msg("Success! Cloned {name} to {location}")
 
@@ -85,6 +90,16 @@ def yes_no(question):
         return False
     else:
         return yes_no(question)
+
+
+def checkout_all_submodules_to_master(repo):
+    for submodule in repo.submodules:
+        checkout_submodule_master(submodule)
+
+
+def checkout_submodule_master(submodule):
+    repo = submodule.module()
+    repo.heads.master.checkout()
 
 
 ###############################################################################
