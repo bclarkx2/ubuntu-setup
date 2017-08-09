@@ -19,5 +19,12 @@
         "script": "",
         "location": "~/.config/sublime-text-3/Packages/User",
         "enabled": true
+    },
+    {
+        "name": "latex",
+        "repo": "git@github.com:bclarkx2/latex.git",
+        "script": "",
+        "location": "~/texmf/tex/latex",
+        "enabled": true
     }
 ]
