@@ -5,15 +5,15 @@ Quick Debian-family Linux setup
 Tool to quickly put a Debian-family install into a usable, handy state.
 
 ## Setup procedure
-* Execute setup.py
+1. Execute setup.py
    * Provide as command line arguments the name of each pkg folder that you wish to install
    * ex: ./setup.py default dev
       * This will install all the packages in both pkgs/default and pkgs/dev
-* This script may require user input
+1. This script may require user input
    * You may have to provide sudo credentials
    * If one of the repos in setup.json is slated to install to an existing directory, then it will prompt you to confirm
 
-##Customize
+## Customize
 * setup.json
    * List of git repos to install
       * Each repo has the following attributes. [] indicates required.
@@ -54,7 +54,7 @@ Tool to quickly put a Debian-family install into a usable, handy state.
    * Notes
       * If you want to add packages to multiple folders, you have to run this script once for each folder
 
-##Typical Workflows
+## Typical Workflows
 1. Add from current install
    1. While using your install, you add a couple packages.
    1. You decide that some of those pacakges would be nice to add to install when setting up a dev station
