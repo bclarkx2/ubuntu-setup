@@ -9,6 +9,9 @@ import os
 import subprocess
 import shutil
 
+import pkg_util.pkg as pkg
+from pkg_util.pkg import PkgArgumentParser
+
 
 ###############################################################################
 # Constants                                                                   #
@@ -17,11 +20,7 @@ import shutil
 setup_filepath = "setup.json"
 required_keys = "name", "repo", "location"
 
-pkgs_dir = "pkgs"
-
-pkgs_filepath = os.path.join(pkgs_dir, "pkgs")
-ignore_pkgs_filepath = os.path.join(pkgs_dir, "ignore_pkgs")
-python_pkgs_filepath = os.path.join(pkgs_dir, "python_pkgs")
+default_folder = "default"
 
 SEP = "{:*^30}".format("")
 
@@ -155,6 +154,22 @@ def read_pkgs_file(filepath):
         return [line.rstrip() for line in pkgs_file]
 
 
+def build_pkgs_list(folders):
+    listed_pkgs = []
+    ignore_pkgs = []
+    python_pkgs = []
+
+    for folder in folders:
+        listed_pkgs += pkg.read_pkgs(folder, pkg.PKGS)
+        ignore_pkgs += pkg.read_pkgs(folder, pkg.IGNORE_PKGS)
+        python_pkgs += pkg.read_pkgs(folder, pkg.PYTHON_PKGS)
+
+    pkgs = set(set(listed_pkgs) - set(ignore_pkgs))
+    python_pkgs = set(python_pkgs)
+
+    return pkgs, python_pkgs
+
+
 ###############################################################################
 # Worker functions                                                            #
 ###############################################################################
@@ -164,30 +179,27 @@ def update_pkgs():
     subprocess.call(["sudo", "apt", "upgrade"])
 
 
-def install_pkgs():
+def install_pkgs(pkgs):
 
     # sanity check: gitpython required to install pkgs
     PythonPackage("gitpython").ensure()
 
     # do a general update first, to avoid unnecessary work
-    update_pkgs()
+    # update_pkgs()
 
-    pkgs = read_pkgs_file(pkgs_filepath)
-    ignore_pkgs = read_pkgs_file(ignore_pkgs_filepath)
-
-    install_set = set(pkgs) - set(ignore_pkgs)
-
-    for pkg in install_set:
-        Package(pkg).ensure()
+    for pack in pkgs:
+        # Package(pack).ensure()
+        print("ensure pack {}".format(pack))
 
 
-def install_python_pkgs():
+def install_python_pkgs(pkgs):
 
     # sanity check: pip is required to install python pkgs
     Package("python3-pip").ensure()
 
-    for pkg in read_pkgs_file(python_pkgs_filepath):
-        PythonPackage(pkg).ensure()
+    for pypack in pkgs:
+        # PythonPackage(pypack).ensure()
+        print("ensure pypack {}".format(pypack))
 
 
 def install_repos():
@@ -201,15 +213,28 @@ def install_repos():
             print(err)
 
 
+def get_args():
+    args = PkgArgumentParser().parse_args()
+
+    if not args.folders:
+        args.folders = [default_folder]
+
+    return args
+
+
 ###############################################################################
 # Main script                                                                 #
 ###############################################################################
 
 def main():
 
-    install_python_pkgs()
-    install_pkgs()
-    install_repos()
+    args = get_args()
+
+    pkgs, python_pkgs = build_pkgs_list(args.folders)
+
+    install_python_pkgs(python_pkgs)
+    install_pkgs(pkgs)
+    # install_repos()
 
 
 if __name__ == '__main__':

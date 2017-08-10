@@ -5,53 +5,63 @@
 # Imports                                                                     #
 ###############################################################################
 
-import subprocess
+import argparse
 import os
+import pkg_util.pkg as pkg
 
 
 ###############################################################################
 # Constants                                                                   #
 ###############################################################################
 
-pkg_list_script = "current_pkg_list"
-pkgs_filepath = "pkgs/pkgs"
+available_folders = os.listdir(pkg.PKGS_DIR)
 
 
 ###############################################################################
 # Helper functions                                                            #
 ###############################################################################
 
-def set_pkgs(pkgs):
-    with open(pkgs_filepath, 'w') as pkgs_file:
-        for pkg in pkgs:
-            pkgs_file.write("{}{}".format(pkg, os.linesep))
+def pkg_update_list(folder, pkg_file):
+    current = pkg.read_pkgs(folder, pkg_file)
+    new = pkg.installed_pkgs()
+
+    update = list(set(current + new))
+    return update
 
 
-def installed_pkgs():
-    output = subprocess.check_output(["bash", pkg_list_script])
-    output_str = output.decode()
-    pkgs = output_str.split("\n")
-    return list(filter(bool, pkgs))
+def get_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("folder",
+                        choices=available_folders)
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("--dry-run",
+                       action="store_true")
+    group.add_argument("--new",
+                       action="store_true")
 
-
-def current_pkgs():
-    with open(pkgs_filepath) as pkgs_file:
-        return [line.rstrip() for line in pkgs_file if line != "\n"]
-
-
-def update_pkgs():
-
-    current = current_pkgs()
-    new = installed_pkgs()
-
-    updated = set(current + new)
-
-    set_pkgs(updated)
+    return parser.parse_args()
 
 
 ###############################################################################
 # Main script                                                                 #
 ###############################################################################
 
+def main():
+    args = get_args()
+
+    update_list = pkg_update_list(args.folder, pkg.PKGS)
+    current_pkgs = pkg.read_pkgs(args.folder, pkg.PKGS)
+
+    if args.dry_run:
+        for pack in update_list:
+            print(pack)
+    elif args.new:
+        new_list = list(set(pkg.installed_pkgs()) - set(current_pkgs))
+        for pack in new_list:
+            print(pack)
+    else:
+        pkg.set_pkgs(args.folder, pkg.PKGS, update_list)
+
+
 if __name__ == '__main__':
-    update_pkgs()
+    main()
