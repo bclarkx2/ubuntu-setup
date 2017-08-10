@@ -62,7 +62,7 @@ Tool to quickly put a Debian-family install into a usable, handy state.
    1. Run `update_packages.py dev --new` to get a list of packages that you have installed locally that are not in the dev folder's pkgs file
       * If you decide to add all the new packages:
          * Run `update_packages.py dev --dry-run` to see the final list of packages that will be written to the dev folder's pkgs folder
-         * Run 'update_packages.py dev` to overwrite the dev folder's pkgs folder with the updated list
+         * Run `update_packages.py dev` to overwrite the dev folder's pkgs folder with the updated list
       * If you decide to only add some packages:
          * Manually edit the dev folder's pkgs file to include the desired package
          * Use the output from the `--new` command as reference if you like
