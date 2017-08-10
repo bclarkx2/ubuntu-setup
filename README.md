@@ -1,10 +1,10 @@
 # ubuntu-setup
 Quick Debian-family Linux setup
 
-**setup.py:**
+## setup.py
 Tool to quickly put a Debian-family install into a usable, handy state.
 
-**Setup procedure:**
+## Setup procedure
 * Execute setup.py
    * Provide as command line arguments the name of each pkg folder that you wish to install
    * ex: ./setup.py default dev
@@ -13,7 +13,7 @@ Tool to quickly put a Debian-family install into a usable, handy state.
    * You may have to provide sudo credentials
    * If one of the repos in setup.json is slated to install to an existing directory, then it will prompt you to confirm
 
-**Customize:**
+##Customize
 * setup.json
    * List of git repos to install
       * Each repo has the following attributes. [] indicates required.
@@ -54,17 +54,17 @@ Tool to quickly put a Debian-family install into a usable, handy state.
    * Notes
       * If you want to add packages to multiple folders, you have to run this script once for each folder
 
-**Typical Workflows:**
-# Add from current install
-   # While using your install, you add a couple packages.
-   # You decide that some of those pacakges would be nice to add to install when setting up a dev station
-   # Navigate to ubuntu-settings
-   # Run `update_packages.py dev --new` to get a list of packages that you have installed locally that are not in the dev folder's pkgs file
+##Typical Workflows
+1. Add from current install
+   1. While using your install, you add a couple packages.
+   1. You decide that some of those pacakges would be nice to add to install when setting up a dev station
+   1. Navigate to ubuntu-settings
+   1. Run `update_packages.py dev --new` to get a list of packages that you have installed locally that are not in the dev folder's pkgs file
       * If you decide to add all the new packages:
          * Run `update_packages.py dev --dry-run` to see the final list of packages that will be written to the dev folder's pkgs folder
          * Run 'update_packages.py dev` to overwrite the dev folder's pkgs folder with the updated list
       * If you decide to only add some packages:
          * Manually edit the dev folder's pkgs file to include the desired package
          * Use the output from the `--new` command as reference if you like
-   # Add the changed pkgs files to git
-   # Commit and push changes
+   1. Add the changed pkgs files to git
+   1. Commit and push changes
