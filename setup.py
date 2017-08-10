@@ -185,11 +185,10 @@ def install_pkgs(pkgs):
     PythonPackage("gitpython").ensure()
 
     # do a general update first, to avoid unnecessary work
-    # update_pkgs()
+    update_pkgs()
 
     for pack in pkgs:
-        # Package(pack).ensure()
-        print("ensure pack {}".format(pack))
+        Package(pack).ensure()
 
 
 def install_python_pkgs(pkgs):
@@ -198,8 +197,7 @@ def install_python_pkgs(pkgs):
     Package("python3-pip").ensure()
 
     for pypack in pkgs:
-        # PythonPackage(pypack).ensure()
-        print("ensure pypack {}".format(pypack))
+        PythonPackage(pypack).ensure()
 
 
 def install_repos():
@@ -234,7 +232,7 @@ def main():
 
     install_python_pkgs(python_pkgs)
     install_pkgs(pkgs)
-    # install_repos()
+    install_repos()
 
 
 if __name__ == '__main__':
