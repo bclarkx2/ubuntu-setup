@@ -53,6 +53,10 @@ Tool to quickly put a Debian-family install into a usable, handy state.
       * --new: print only the currently installed packages that will be *added* to the folder's pkgs file
    * Notes
       * If you want to add packages to multiple folders, you have to run this script once for each folder
+* status.py
+   * Gives a nice summary of all installed repos.
+   * Prints out filesystem location and clean/dirty status
+   * This lets you easily see if there's any local changes you need to resolve (whether by committing, merging, resetting, etc...)
 
 ## Typical Workflows
 1. Add from current install
