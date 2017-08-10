@@ -4,21 +4,22 @@
 # Imports                                                                     #
 ###############################################################################
 
-import json
 import os
 import subprocess
-import shutil
 
 import pkg_util.pkg as pkg
+import pkg_util.common as comm
 from pkg_util.pkg import PkgArgumentParser
+
+try:
+    import git
+except ImportError:
+    print("skipping git import")
 
 
 ###############################################################################
 # Constants                                                                   #
 ###############################################################################
-
-setup_filepath = "setup.json"
-required_keys = "name", "repo", "location"
 
 default_folder = "default"
 
@@ -38,13 +39,17 @@ class SetupRepo(object):
 
     @staticmethod
     def of(attr_dict):
-        if not all(key in attr_dict for key in required_keys):
+        if not all(key in attr_dict for key in comm.required_keys):
             raise ValueError("Missing key!")
         return SetupRepo(attr_dict)
 
+    @staticmethod
+    def list_from(repo_dicts):
+        return [SetupRepo.of(repo_dict) for repo_dict in repo_dicts if repo_dict["enabled"]]
+
     def okay_to_write(self):
         if os.path.isdir(self.location):
-            return yes_no("Overwrite {}?".format(self.location))
+            return comm.yes_no("Overwrite {}?".format(self.location))
         else:
             return True
 
@@ -58,7 +63,7 @@ class SetupRepo(object):
             self.msg("Skipping {name}")
             return
 
-        clear_dir(self.location)
+        comm.clear_dir(self.location)
         repo = git.Repo.clone_from(self.repo, self.location, recursive=True)
 
         # need to checkout to master
@@ -73,6 +78,9 @@ class SetupRepo(object):
             full_script = os.path.join(self.location, self.script)
             subprocess.call([full_script])
 
+    def status(self):
+        return git.Repo(self.location).is_dirty()
+
 
 class Package(object):
 
@@ -81,7 +89,10 @@ class Package(object):
         self.pkg_name = pkg_name
 
     def is_installed(self):
-        return subprocess.check_output(["dpkg", "-s", self.pkg_name])
+        returncode = subprocess.call(["dpkg", "-s", self.pkg_name],
+                                     stdout=subprocess.DEVNULL,
+                                     stderr=subprocess.DEVNULL)
+        return returncode == 0
 
     def install(self):
         subprocess.call(["sudo", "apt", "install", self.pkg_name])
@@ -119,26 +130,6 @@ class PythonPackage(Package):
 # Helper functions                                                            #
 ###############################################################################
 
-def read_json_file(filepath):
-    with open(filepath) as json_file:
-        return json.load(json_file)
-
-
-def clear_dir(directory):
-    if os.path.exists(directory):
-        shutil.rmtree(directory)
-
-
-def yes_no(question):
-    reply = input("{} (y/n):".format(question)).lower().strip()
-    if reply.startswith("y"):
-        return True
-    elif reply.startswith("n"):
-        return False
-    else:
-        return yes_no(question)
-
-
 def checkout_all_submodules_to_master(repo):
     for submodule in repo.submodules:
         checkout_submodule_master(submodule)
@@ -147,11 +138,6 @@ def checkout_all_submodules_to_master(repo):
 def checkout_submodule_master(submodule):
     repo = submodule.module()
     repo.heads.master.checkout()
-
-
-def read_pkgs_file(filepath):
-    with open(filepath) as pkgs_file:
-        return [line.rstrip() for line in pkgs_file]
 
 
 def build_pkgs_list(folders):
@@ -201,8 +187,8 @@ def install_python_pkgs(pkgs):
 
 
 def install_repos():
-    repo_dicts = read_json_file(setup_filepath)
-    repos = [SetupRepo.of(repo_dict) for repo_dict in repo_dicts if repo_dict["enabled"]]
+    repo_dicts = comm.read_json_file(comm.setup_filepath)
+    repos = SetupRepo.list_from(repo_dicts)
 
     for repo in repos:
         try:
