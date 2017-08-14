@@ -9,6 +9,7 @@ Tool to quickly put a Debian-family install into a usable, handy state.
    * Provide as command line arguments the name of each pkg folder that you wish to install
    * ex: ./setup.py default dev
       * This will install all the packages in both pkgs/default and pkgs/dev
+   * WARNING!: Don't run this script as root! This will give root permission to every repo you clone
 1. This script may require user input
    * You may have to provide sudo credentials
    * If one of the repos in setup.json is slated to install to an existing directory, then it will prompt you to confirm
