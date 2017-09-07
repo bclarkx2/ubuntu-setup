@@ -41,6 +41,19 @@ def update():
             remote.pull()
 
 
+def commit():
+    repos = get_repos()
+
+    for repo in repos:
+        if comm.yes_no("Commit {}?".format(repo.name)):
+            git_repo = repo.git_repo()
+            git_repo.git.add(".")
+            commit_msg = input("commit message: ")
+            git_repo.git.commit(commit_msg)
+            remote = git_repo.remote(ORIGIN)
+            remote.push()
+
+
 ###############################################################################
 # Helper functions                                                            #
 ###############################################################################
@@ -63,6 +76,8 @@ def get_args():
     group = parser.add_mutually_exclusive_group()
     group.add_argument("--update", "-u",
                        action="store_true")
+    group.add_argument("--commit", "-c",
+                       action="store_true")
     return parser.parse_args()
 
 
@@ -76,6 +91,8 @@ def main():
 
     if(args.update):
         update()
+    elif(args.update):
+        commit()
     else:
         status()
 
