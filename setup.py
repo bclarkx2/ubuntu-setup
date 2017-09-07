@@ -79,7 +79,10 @@ class SetupRepo(object):
             subprocess.call([full_script])
 
     def status(self):
-        return git.Repo(self.location).is_dirty()
+        return self.git_repo().is_dirty()
+
+    def git_repo(self):
+        return git.Repo(self.location)
 
 
 class Package(object):
