@@ -91,7 +91,7 @@ def main():
 
     if(args.update):
         update()
-    elif(args.update):
+    elif(args.commit):
         commit()
     else:
         status()
