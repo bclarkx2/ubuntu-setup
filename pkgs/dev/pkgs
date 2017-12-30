@@ -1,2 +1,6 @@
-coverage
+cmake
+curl
+sqlite3
 pylint
+traceroute
+coverage

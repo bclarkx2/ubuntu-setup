@@ -47,6 +47,12 @@ def set_pkgs(folder, pkgs_filename, pkgs):
             pkgs_file.write("{}{}".format(pkg, os.linesep))
 
 
+def add_pkg(folder, pkgs_filename, new_pkg):
+    pkgs = set(read_pkgs(folder, pkgs_filename))
+    pkgs.add(new_pkg)
+    set_pkgs(folder, pkgs_filename, pkgs)
+
+
 def installed_pkgs():
     output = subprocess.check_output(["bash", pkg_list_script])
     output_str = output.decode()
