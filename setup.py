@@ -25,6 +25,8 @@ default_folder = "default"
 
 SEP = "{:*^30}".format("")
 
+SCRIPT_DIR = "scripts"
+
 
 ###############################################################################
 # Class definitions                                                           #
@@ -198,6 +200,16 @@ def install_repos():
             repo.unpack()
         except git.exc.GitError as err:
             print(err)
+
+
+def run_scripts():
+
+    scripts = [os.path.join(SCRIPT_DIR, f)
+               for f in os.listdir(SCRIPT_DIR)
+               if f.endswith(".py")]
+
+    for script in scripts:
+        subprocess.call(["python3", script])
 
 
 def get_args():
