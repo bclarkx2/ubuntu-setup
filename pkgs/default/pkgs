@@ -1,11 +1,13 @@
-trash-cli
 sublime-text
-python3-pip
-duplicity
-subversion
 git
 traceroute
+xclip
 curl
+python3-pip
+trash-cli
 texlive-full
+subversion
 p7zip-full
+duplicity
 feh
+cifs-utils

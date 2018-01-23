@@ -1,6 +1,7 @@
-cmake
 curl
-sqlite3
 pylint
 traceroute
+cmake
+racket
+sqlite3
 coverage
