@@ -1,3 +1,0 @@
-#!/bin/bash
-
-zcat /var/log/apt/history.log.*.gz 2>/dev/null | cat - /var/log/apt/history.log | grep -Po '^Commandline: apt(-get)? install (?!.*--reinstall)\K.*'

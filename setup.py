@@ -115,22 +115,6 @@ class Package(object):
             print("Skipping: already installed!".format(self.pkg_name))
 
 
-class PythonPackage(Package):
-
-    def __init__(self, pkg_name):
-        super(PythonPackage, self).__init__(pkg_name)
-
-    def is_installed(self):
-        try:
-            import self.pkg_name
-            return True
-        except ImportError:
-            return False
-
-    def install(self):
-        subprocess.call(["sudo", "pip3", "install", self.pkg_name])
-
-
 ###############################################################################
 # Helper functions                                                            #
 ###############################################################################
@@ -148,17 +132,14 @@ def checkout_submodule_master(submodule):
 def build_pkgs_list(folders):
     listed_pkgs = []
     ignore_pkgs = []
-    python_pkgs = []
 
     for folder in folders:
         listed_pkgs += pkg.read_pkgs(folder, pkg.PKGS)
         ignore_pkgs += pkg.read_pkgs(folder, pkg.IGNORE_PKGS)
-        python_pkgs += pkg.read_pkgs(folder, pkg.PYTHON_PKGS)
 
     pkgs = set(set(listed_pkgs) - set(ignore_pkgs))
-    python_pkgs = set(python_pkgs)
 
-    return pkgs, python_pkgs
+    return pkgs
 
 
 ###############################################################################
