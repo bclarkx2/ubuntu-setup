@@ -233,12 +233,7 @@ install_scripts () {
     print_script "$script"
 
     read -s -r -p "<Press enter to continue>"$'\n'
-
-    if $DRY_RUN; then
-      echo "Dry running: $script"
-    else
-      "$script"
-    fi
+    run "$script"
   done
 }
 
