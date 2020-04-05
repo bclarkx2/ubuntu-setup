@@ -7,9 +7,14 @@ BOLD=$(tput bold)
 NORMAL=$(tput sgr0)
 
 
-## Common functions
+## Display functions
 err() {
   echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')]: $*" >&2
+}
+
+step() {
+  local title="$1"
+  printf '\n%s%s%s\n' "===> " "$title" "..."
 }
 
 
@@ -123,10 +128,13 @@ install_packages () {
 }
 
 pkgs=()
+step "Collecting packages"
 build_list pkgs "packages"
+step "Installing packages"
 install_packages pkgs
 
 snaps=()
+step "Collecting snaps"
 build_list snaps "snaps"
 
 printf '%s\n' "${snaps[@]}"
