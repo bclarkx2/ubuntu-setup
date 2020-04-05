@@ -99,6 +99,8 @@ build_list () {
   local -n all_items="$1"
   local dir="$2"
 
+  step "Collecting $dir"
+
   for item_file in ${dir}/*; do
   
     print_set "$dir" "$item_file"
@@ -122,6 +124,7 @@ build_list () {
 install_packages () {
   local -n install_pkgs="$1"
 
+  step "Installing packages"
   for pkg in "${install_pkgs[@]}"; do
     sudo apt install -y "$pkg"
   done
@@ -130,20 +133,17 @@ install_packages () {
 install_snaps () {
   local -n install_snaps="$1"
 
+  step "Installing snaps"
   for snap in "${install_snaps[@]}"; do
     sudo snap install "$snap"
   done
 }
 
 pkgs=()
-step "Collecting packages"
 build_list pkgs "packages"
-step "Installing packages"
 install_packages pkgs
 
 snaps=()
-step "Collecting snaps"
 build_list snaps "snaps"
-step "Installing snaps"
 install_snaps snaps
 
