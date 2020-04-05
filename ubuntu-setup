@@ -127,6 +127,14 @@ install_packages () {
   done
 }
 
+install_snaps () {
+  local -n install_snaps="$1"
+
+  for snap in "${install_snaps[@]}"; do
+    sudo snap install "$snap"
+  done
+}
+
 pkgs=()
 step "Collecting packages"
 build_list pkgs "packages"
@@ -136,6 +144,6 @@ install_packages pkgs
 snaps=()
 step "Collecting snaps"
 build_list snaps "snaps"
-
-printf '%s\n' "${snaps[@]}"
+step "Installing snaps"
+install_snaps snaps
 
