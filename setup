@@ -17,6 +17,8 @@ step() {
   printf '\n%s%s%s\n' "===> " "$title" "..."
 }
 
+
+## Common
 run() {
   local _exe="$1"
   if $DRY_RUN; then
@@ -26,8 +28,6 @@ run() {
   fi
 }
 
-
-## Packages
 ask_action () {
   local prompt="$1"
   local allowed="$2"
@@ -42,6 +42,8 @@ ask_action () {
   fi
 }
 
+
+## Packages
 print_set () {
   local dir="$1"
   local pkg_file="$2"
@@ -72,7 +74,6 @@ edit_set () {
 
   done 3< $pkg_file
 }
-
 
 # Construct item list
 build_list () {
@@ -298,7 +299,6 @@ while (( "$#" )); do
 done
 # set positional arguments in their proper place
 eval set -- "$PARAMS"
-
 
 
 ## Main
