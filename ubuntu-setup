@@ -175,6 +175,13 @@ install_repos () {
       continue
     fi
 
+    # Handle submodules
+    (
+      cd "$target" ;
+      git submodule update --init --recursive ;
+      git submodule foreach --recursive git checkout master
+    )
+
     # Execute any post-install script
     if [[ ! -z "${repo[script]}" ]]; then
       bash "$target/${repo[script]}"
