@@ -1,4 +1,113 @@
 #!/usr/bin/env bash 
+#
+# Desc
+
+## Globals
+BOLD=$(tput bold)
+NORMAL=$(tput sgr0)
 
 
+## Common functions
+err() {
+  echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')]: $*" >&2
+}
 
+
+## Option parsing
+PARAMS=""
+DRY_RUN=0
+
+while (( "$#" )); do
+  case "$1" in
+    -d|--dry-run)
+	DRY_RUN=1
+      shift 1
+      ;;
+    --) # end argument parsing
+      shift
+      break
+      ;;
+    -*|--*=) # unsupported flags
+      echo "Error: Unsupported flag $1" >&2
+      exit 1
+      ;;
+    *) # preserve positional arguments
+      PARAMS="$PARAMS $1"
+      shift
+      ;;
+  esac
+done
+# set positional arguments in their proper place
+eval set -- "$PARAMS"
+
+
+## Packages
+
+ask_action () {
+  local prompt="$1"
+  local allowed="$2"
+
+  local response
+  read -p "$prompt"$'\n' response
+
+  local code="$(echo ${response:0:1} | tr '[:upper:]' '[:lower:]')"
+
+  if [[ "$code" =~ $allowed ]]; then
+    echo $code
+  fi
+}
+
+print_package_set () {
+  local pkg_file="$1"
+  local pkg_set="$(basename $pkg_file)"
+
+  # Print header for the package set
+  echo
+  echo "--- Package set: ${BOLD}${pkg_set}${NORMAL}"
+
+  # Print contents of set, with two space indent
+  cat $pkg_file | sed 's/^/  /'
+  echo
+}
+
+edit_package_set () {
+  local pkg_file="$1"
+  local -n _pkgs="$2"
+
+  # Read lines from pkg file on unit 3
+  while read -r -u 3 line; do
+    printf '\n%s\n' $line
+    local action=$(ask_action 'y/n?' '[yn]')
+    
+    if [[ "$action" == "y" ]]; then
+      _pkgs+=$line
+      printf 'Adding %s to list\n' $line
+    fi
+
+  done 3< $pkg_file
+}
+
+
+# Construct package list
+pkgs=()
+for pkg_file in packages/*; do
+
+  print_package_set "$pkg_file"
+
+  action=$(ask_action '(I)nstall, (S)kip, or (E)dit?' '[ies]')
+
+  case "$action" in 
+    i)
+      mapfile -t -O "${#pkgs[@]}" pkgs < "$pkg_file"
+      ;;
+    e)
+      edit_package_set "$pkg_file" pkgs
+      ;;
+    *)
+      continue
+      ;;
+  esac
+done
+
+echo
+printf '%s\n' "${pkgs[@]}"
