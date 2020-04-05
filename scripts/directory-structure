@@ -4,6 +4,9 @@
 DIRS=(
   "data/"
   "downloads/"
+  "local/"
+  "local/bin"
+  "local/dotfiles"
   "projects/"
   "snap/"
   "tmp/"
