@@ -18,36 +18,7 @@ step() {
 }
 
 
-## Option parsing
-PARAMS=""
-DRY_RUN=0
-
-while (( "$#" )); do
-  case "$1" in
-    -d|--dry-run)
-	DRY_RUN=1
-      shift 1
-      ;;
-    --) # end argument parsing
-      shift
-      break
-      ;;
-    -*|--*=) # unsupported flags
-      echo "Error: Unsupported flag $1" >&2
-      exit 1
-      ;;
-    *) # preserve positional arguments
-      PARAMS="$PARAMS $1"
-      shift
-      ;;
-  esac
-done
-# set positional arguments in their proper place
-eval set -- "$PARAMS"
-
-
 ## Packages
-
 ask_action () {
   local prompt="$1"
   local allowed="$2"
@@ -130,6 +101,8 @@ install_packages () {
   done
 }
 
+
+## Snaps
 install_snaps () {
   local -n install_snaps="$1"
 
@@ -139,11 +112,89 @@ install_snaps () {
   done
 }
 
-pkgs=()
-build_list pkgs "packages"
-install_packages pkgs
 
-snaps=()
-build_list snaps "snaps"
-install_snaps snaps
+## Repos
+build_repos () {
+  local -n build_repos="$1"
+  local dir="$2"
 
+  step "Installing repos"
+
+  for repo_file in "${dir}/*"; do
+    echo "repo_file: $repo_file"
+  done
+
+}
+
+## Option parsing
+PARAMS=""
+DRY_RUN=false
+DO_PACKAGES=false
+DO_SNAPS=false
+DO_REPOS=false
+
+while (( "$#" )); do
+  case "$1" in
+    -d|--dry-run)
+    	DRY_RUN=true
+      shift 1
+      ;;
+    -s|--steps)
+      steps="$(echo "$2" | tr '[:upper:]' '[:lower:]')"
+
+      for step in ${steps//,/ }; do
+        case "$step" in
+          packages)
+            DO_PACKAGES=true
+            echo "Adding to pipeline: package install"
+            ;;
+          snaps)
+            DO_SNAPS=true
+            echo "Adding to pipeline: snap install"
+            ;;
+          repos)
+            DO_REPOS=true
+            echo "Adding to pipeline: repo install"
+            ;;
+        esac
+      done
+      shift 2
+      ;;
+    --) # end argument parsing
+      shift
+      break
+      ;;
+    -*|--*=) # unsupported flags
+      echo "Error: Unsupported flag $1" >&2
+      exit 1
+      ;;
+    *) # preserve positional arguments
+      PARAMS="$PARAMS $1"
+      shift
+      ;;
+  esac
+done
+# set positional arguments in their proper place
+eval set -- "$PARAMS"
+
+
+
+## Main
+if $DO_PACKAGES; then
+  pkgs=()
+  build_list pkgs "packages"
+  install_packages pkgs
+fi
+
+if $DO_SNAPS; then
+  snaps=()
+  build_list snaps "snaps"
+  install_snaps snaps
+fi
+
+if $DO_REPOS; then
+  declare -A repos
+  build_repos repos "repos"
+fi
+
+printf '\n%s\n' "Setup complete!"
