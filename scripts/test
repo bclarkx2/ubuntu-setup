@@ -1,0 +1,36 @@
+#!/usr/bin/env bash 
+
+## Globals
+usage="$(basename "$0") [-h] -- program to calculate the answer to life, the universe and everything
+
+where:
+    -h  show this help text"
+
+## Option parsing
+PARAMS=""
+
+while (( "$#" )); do
+  case "$1" in
+    -h|--help)
+    	echo "$usage"
+      exit 1
+      ;;
+    --) # end argument parsing
+      shift
+      break
+      ;;
+    -*|--*=) # unsupported flags
+      echo "Error: Unsupported flag $1" >&2
+      echo "$usage"
+      exit 1
+      ;;
+    *) # preserve positional arguments
+      PARAMS="$PARAMS $1"
+      shift
+      ;;
+  esac
+done
+# set positional arguments in their proper place
+eval set -- "$PARAMS"
+
+echo "This has been a test!"

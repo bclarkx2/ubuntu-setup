@@ -190,12 +190,35 @@ install_repos () {
 }
 
 
+## Scripts
+build_scripts () {
+  local -n all_scripts="$1"
+  local dir="$2"
+
+  step "Collecting scripts"
+
+  for script in ${dir}/*; do
+    local script_name=`basename "$script"`
+
+    printf '\n%s\n' "---Script: ${dir}/${BOLD}${script_name}${NORMAL}"
+    printf '%s\n' "$($script --help)"
+    local action="$(ask_action 'Y/n?' '[yn]')"
+
+    if [[ "$action" == "y" ]]; then
+      all_scripts+=("$script")
+    fi
+
+  done
+}
+
+
 ## Option parsing
 PARAMS=""
 DRY_RUN=false
 DO_PACKAGES=false
 DO_SNAPS=false
 DO_REPOS=false
+DO_SCRIPTS=false
 
 while (( "$#" )); do
   case "$1" in
@@ -219,6 +242,10 @@ while (( "$#" )); do
           repos)
             DO_REPOS=true
             echo "Adding to pipeline: repo install"
+            ;;
+          scripts)
+            DO_SCRIPTS=true
+            echo "Adding to pipeline: scripts"
             ;;
         esac
       done
@@ -261,5 +288,12 @@ if $DO_REPOS; then
   build_repos repos "repos"
   install_repos repos
 fi
+
+if $DO_SCRIPTS; then
+  scripts=()
+  build_scripts scripts "scripts"
+fi
+
+printf '%s\n' "${scripts[@]}"
 
 printf '\n%s\n' "Setup complete!"
