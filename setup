@@ -228,11 +228,11 @@ install_scripts () {
   local -n run_scripts="$1"
 
   step "Running scripts"
-
   for script in "${scripts[@]}"; do
+    
     print_script "$script"
-
-    read -s -r -p "<Press enter to continue>"$'\n'
+    
+    $INTERACTIVE && read -s -r -p "<Press enter to continue>"$'\n'
     run "$script"
   done
 }
@@ -241,6 +241,7 @@ install_scripts () {
 ## Option parsing
 PARAMS=""
 DRY_RUN=false
+INTERACTIVE=false
 DO_PACKAGES=false
 DO_SNAPS=false
 DO_REPOS=false
@@ -250,6 +251,10 @@ while (( "$#" )); do
   case "$1" in
     -d|--dry-run)
     	DRY_RUN=true
+      shift 1
+      ;;
+    -i|--interactive)
+      INTERACTIVE=true
       shift 1
       ;;
     -s|--steps)
