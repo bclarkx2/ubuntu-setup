@@ -2,29 +2,19 @@
     {
         "name": "bin",
         "repo": "git@github.com:bclarkx2/bin.git",
-        "script": "",
-        "location": "~/bin",
-        "enabled": true
+        "script": "lines",
+        "location": "~/tmp/repos/bin"
     },
     {
         "name": "dotfiles",
         "repo": "git@github.com:bclarkx2/dotfiles.git",
         "script": "disperse.py",
-        "location": "~/dotfiles",
-        "enabled": true
-    },
-    {
-        "name": "sublime",
-        "repo": "git@github.com:bclarkx2/sublime-config.git",
-        "script": "",
-        "location": "~/.config/sublime-text-3/Packages/User",
-        "enabled": true
+        "location": "~/tmp/repos/dotfiles"
     },
     {
         "name": "latex",
         "repo": "git@github.com:bclarkx2/latex.git",
         "script": "",
-        "location": "~/texmf/tex/latex",
-        "enabled": true
+        "location": "~/tmp/repos/latex"
     }
 ]

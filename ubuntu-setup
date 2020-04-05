@@ -65,7 +65,7 @@ edit_set () {
 }
 
 
-# Construct package list
+# Construct item list
 build_list () {
   local -n all_items="$1"
   local dir="$2"
@@ -114,17 +114,74 @@ install_snaps () {
 
 
 ## Repos
+field () {
+  local _repo="$1"
+  local _field="$2"
+  echo "$_repo" | jq -r ".${_field}"
+}
+
 build_repos () {
-  local -n build_repos="$1"
+  local -n repo_map="$1"
   local dir="$2"
+  local file_repos
+  local repo
+  local name
 
   step "Installing repos"
 
-  for repo_file in "${dir}/*"; do
-    echo "repo_file: $repo_file"
-  done
+  for repo_file in ${dir}/*; do
+ 
+    # Parse each repo in the file into an array
+    file_repos=()
+    while read -r repo; do
+      file_repos+=("$repo")
+    done < <(jq -c '.[]' "$repo_file")
 
+    # Cycle through and let user select which to install
+    for repo in "${file_repos[@]}"; do
+      echo "$repo" | jq -r '.'
+      action=$(ask_action '(I)nstall or (S)kip?' '[is]')
+
+      if [[ "$action" == "i" ]]; then
+        name="$(field $repo 'name')"
+        repo_map["$name"]="$repo"
+        printf "Adding %s to list\n" "$name"
+      fi
+      echo
+    done
+  done
 }
+
+install_repos () {
+  local -n repo_map="$1" 
+  local repo_str
+
+  step "Installing repos"
+  for repo_str in "${repo_map[@]}"; do
+   
+    # Parse each repo into an assoc array using jq
+    local -A repo="($(
+      echo "$repo_str" | \
+      jq -r '. | to_entries | .[] | "[" + .key + "]=\"" + .value + "\""'
+    ))"
+
+    # Use git to clone repos
+    target=${repo[location]/#\~/$HOME}
+    git clone "${repo[repo]}" "$target"
+
+    # If installation failed, move on to the next
+    if [[ $? -ne 0 ]]; then
+      err "Error cloning repo ${repo[name]}, aborting"
+      continue
+    fi
+
+    # Execute any post-install script
+    if [[ ! -z "${repo[script]}" ]]; then
+      bash "$target/${repo[script]}"
+    fi
+  done
+}
+
 
 ## Option parsing
 PARAMS=""
@@ -195,6 +252,7 @@ fi
 if $DO_REPOS; then
   declare -A repos
   build_repos repos "repos"
+  install_repos repos
 fi
 
 printf '\n%s\n' "Setup complete!"
