@@ -57,20 +57,21 @@ ask_action () {
   fi
 }
 
-print_package_set () {
-  local pkg_file="$1"
+print_set () {
+  local dir="$1"
+  local pkg_file="$2"
   local pkg_set="$(basename $pkg_file)"
 
   # Print header for the package set
   echo
-  echo "--- Package set: ${BOLD}${pkg_set}${NORMAL}"
+  echo "--- Set: ${dir}/${BOLD}${pkg_set}${NORMAL}"
 
   # Print contents of set, with two space indent
   cat $pkg_file | column -x -c 40 | sed 's/^/  /'
   echo
 }
 
-edit_package_set () {
+edit_set () {
   local pkg_file="$1"
   local -n set_pkgs="$2"
 
@@ -89,21 +90,22 @@ edit_package_set () {
 
 
 # Construct package list
-build_package_list () {
-  local -n all_pkgs="$1"
+build_list () {
+  local -n all_items="$1"
+  local dir="$2"
 
-  for pkg_file in packages/*; do
+  for item_file in ${dir}/*; do
   
-    print_package_set "$pkg_file"
+    print_set "$dir" "$item_file"
   
     action=$(ask_action '(I)nstall, (S)kip, or (E)dit?' '[ies]')
   
     case "$action" in 
       i)
-        mapfile -t -O "${#pkgs[@]}" pkgs < "$pkg_file"
+        mapfile -t -O "${#all_items[@]}" all_items < "$item_file"
         ;;
       e)
-        edit_package_set "$pkg_file" all_pkgs
+        edit_set "$item_file" all_items
         ;;
       *)
         continue
@@ -121,8 +123,11 @@ install_packages () {
 }
 
 pkgs=()
-build_package_list pkgs
+build_list pkgs "packages"
 install_packages pkgs
 
-echo
-printf '%s\n' "${pkgs[@]}"
+snaps=()
+build_list snaps "snaps"
+
+printf '%s\n' "${snaps[@]}"
+
