@@ -17,6 +17,15 @@ step() {
   printf '\n%s%s%s\n' "===> " "$title" "..."
 }
 
+run() {
+  local _exe="$1"
+  if $DRY_RUN; then
+    echo "Dry run: $_exe"
+  else
+    bash -c "$_exe"
+  fi
+}
+
 
 ## Packages
 ask_action () {
@@ -97,7 +106,7 @@ install_packages () {
 
   step "Installing packages"
   for pkg in "${install_pkgs[@]}"; do
-    sudo apt install -y "$pkg"
+    run "sudo apt install -y $pkg"
   done
 }
 
@@ -108,7 +117,7 @@ install_snaps () {
 
   step "Installing snaps"
   for snap in "${install_snaps[@]}"; do
-    sudo snap install "$snap"
+    run "sudo snap install $snap"
   done
 }
 
@@ -167,7 +176,7 @@ install_repos () {
 
     # Use git to clone repos
     target=${repo[location]/#\~/$HOME}
-    git clone "${repo[repo]}" "$target"
+    run "git clone ${repo[repo]} $target"
 
     # If installation failed, move on to the next
     if [[ $? -ne 0 ]]; then
@@ -176,15 +185,12 @@ install_repos () {
     fi
 
     # Handle submodules
-    (
-      cd "$target" ;
-      git submodule update --init --recursive ;
-      git submodule foreach --recursive git checkout master
-    )
+    run "cd $target; git submodule update --init --recursive" ;
+    run "cd $target; git submodule foreach --recursive git checkout master"
 
     # Execute any post-install script
     if [[ ! -z "${repo[script]}" ]]; then
-      bash "$target/${repo[script]}"
+      run "$target/${repo[script]}"
     fi
   done
 }
@@ -227,7 +233,12 @@ install_scripts () {
     print_script "$script"
 
     read -s -r -p "<Press enter to continue>"$'\n'
-    "$script"
+
+    if $DRY_RUN; then
+      echo "Dry running: $script"
+    else
+      "$script"
+    fi
   done
 }
 
