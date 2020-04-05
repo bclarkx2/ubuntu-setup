@@ -66,13 +66,13 @@ print_package_set () {
   echo "--- Package set: ${BOLD}${pkg_set}${NORMAL}"
 
   # Print contents of set, with two space indent
-  cat $pkg_file | sed 's/^/  /'
+  cat $pkg_file | column -x -c 40 | sed 's/^/  /'
   echo
 }
 
 edit_package_set () {
   local pkg_file="$1"
-  local -n _pkgs="$2"
+  local -n set_pkgs="$2"
 
   # Read lines from pkg file on unit 3
   while read -r -u 3 line; do
@@ -80,7 +80,7 @@ edit_package_set () {
     local action=$(ask_action 'y/n?' '[yn]')
     
     if [[ "$action" == "y" ]]; then
-      _pkgs+=$line
+      set_pkgs+=$line
       printf 'Adding %s to list\n' $line
     fi
 
@@ -89,25 +89,40 @@ edit_package_set () {
 
 
 # Construct package list
+build_package_list () {
+  local -n all_pkgs="$1"
+
+  for pkg_file in packages/*; do
+  
+    print_package_set "$pkg_file"
+  
+    action=$(ask_action '(I)nstall, (S)kip, or (E)dit?' '[ies]')
+  
+    case "$action" in 
+      i)
+        mapfile -t -O "${#pkgs[@]}" pkgs < "$pkg_file"
+        ;;
+      e)
+        edit_package_set "$pkg_file" all_pkgs
+        ;;
+      *)
+        continue
+        ;;
+    esac
+  done
+}
+
+install_packages () {
+  local -n install_pkgs="$1"
+
+  for pkg in "${install_pkgs[@]}"; do
+    sudo apt install -y "$pkg"
+  done
+}
+
 pkgs=()
-for pkg_file in packages/*; do
-
-  print_package_set "$pkg_file"
-
-  action=$(ask_action '(I)nstall, (S)kip, or (E)dit?' '[ies]')
-
-  case "$action" in 
-    i)
-      mapfile -t -O "${#pkgs[@]}" pkgs < "$pkg_file"
-      ;;
-    e)
-      edit_package_set "$pkg_file" pkgs
-      ;;
-    *)
-      continue
-      ;;
-  esac
-done
+build_package_list pkgs
+install_packages pkgs
 
 echo
 printf '%s\n' "${pkgs[@]}"
