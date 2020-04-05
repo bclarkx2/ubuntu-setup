@@ -191,6 +191,13 @@ install_repos () {
 
 
 ## Scripts
+print_script () {
+  local script="$1"
+  local script_name=`basename "$script"`
+  local script_dir=`dirname "$script"`
+  printf '\n%s\n' "---Script: ${script_dir}/${BOLD}${script_name}${NORMAL}"
+}
+
 build_scripts () {
   local -n all_scripts="$1"
   local dir="$2"
@@ -200,7 +207,7 @@ build_scripts () {
   for script in ${dir}/*; do
     local script_name=`basename "$script"`
 
-    printf '\n%s\n' "---Script: ${dir}/${BOLD}${script_name}${NORMAL}"
+    print_script "$script"
     printf '%s\n' "$($script --help)"
     local action="$(ask_action 'Y/n?' '[yn]')"
 
@@ -208,6 +215,19 @@ build_scripts () {
       all_scripts+=("$script")
     fi
 
+  done
+}
+
+install_scripts () {
+  local -n run_scripts="$1"
+
+  step "Running scripts"
+
+  for script in "${scripts[@]}"; do
+    print_script "$script"
+
+    read -s -r -p "<Press enter to continue>"$'\n'
+    "$script"
   done
 }
 
@@ -292,8 +312,7 @@ fi
 if $DO_SCRIPTS; then
   scripts=()
   build_scripts scripts "scripts"
+  install_scripts scripts
 fi
-
-printf '%s\n' "${scripts[@]}"
 
 printf '\n%s\n' "Setup complete!"
