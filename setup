@@ -42,6 +42,15 @@ ask_action () {
   fi
 }
 
+## Prereqs
+verify_prereqs () {
+  step "Installing pre-reqs"
+
+  # Need git over SSH
+  sudo apt install git ; echo
+  run "scripts/generate-ssh-key"
+}
+
 
 ## Packages
 print_set () {
@@ -302,6 +311,8 @@ eval set -- "$PARAMS"
 
 
 ## Main
+verify_prereqs
+
 if $DO_PACKAGES; then
   pkgs=()
   build_list pkgs "packages"
