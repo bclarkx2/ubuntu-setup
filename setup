@@ -1,6 +1,6 @@
 #!/usr/bin/bash 
 #
-# Desc
+# Set up a Debian-based Linux machine
 
 ## Globals
 BOLD=$(tput bold)
