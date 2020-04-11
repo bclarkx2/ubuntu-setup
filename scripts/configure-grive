@@ -68,3 +68,16 @@ else
   echo "Job already created: $already_exists"
 fi
 
+
+## Write follow ups
+if [[ ! -z $UBUNTU_SETUP_TODO ]]; then
+  url='https://console.cloud.google.com/apis/credentials?folder=&organizationId=&project=mygrive-262819'
+  cmd='grive-copy <credentials_file>'
+
+  printf '%s\n\n' \
+"---GRIVE---
+1. Download client credentials: $url
+2. Install credentials: $cmd" \
+    >> $UBUNTU_SETUP_TODO
+fi
+

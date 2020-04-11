@@ -36,7 +36,7 @@ done
 eval set -- "$PARAMS"
 
 # Configs
-key="${1:-"bclark-$(hostname)"}"
+key="${1:-"bbclark-$(hostname)"}"
 path="$HOME/.ssh"
 private_key_path="${path}/${key}"
 public_key_path="${private_key_path}.pub"
@@ -71,3 +71,15 @@ printf '\n%s\n' "Add key to github: $url"
 # Wait for confirmation
 read -p $'\n'"<Press enter to finish>"$'\n'
 
+# Write follow-ups
+if [[ ! -z "$UBUNTU_SETUP_TODO" ]]; then
+  url='chrome-extension://hdokiejnpimakedhajhdlcegeplioahd/vault.html'
+
+  printf '%s\n' \
+"---KEY---
+1. Goto LastPass vault: $url
+2. Create a new 'SSH Key' item named: $key
+3. Copy private key into item: $private_key_path | clipboard
+4. Copy public key into item: $public_key_path | clipboard" \
+    >> $UBUNTU_SETUP_TODO
+fi
