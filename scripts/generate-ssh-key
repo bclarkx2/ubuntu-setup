@@ -1,0 +1,67 @@
+#!/usr/bin/env bash 
+
+usage () {
+  printf '%s\n' "Usage: $(basename "$0") [-h] [DIR]
+Generate and install an SSH key.
+
+where:
+  -h,--help show this help text"
+}
+
+## Option parsing
+PARAMS=""
+
+while (( "$#" )); do
+  case "$1" in
+    -h|--help)
+      usage
+      exit 1
+      ;;
+    --) # end argument parsing
+      shift
+      break
+      ;;
+    -*|--*=) # unsupported flags
+      echo "Error: Unsupported flag $1" >&2
+      usage
+      exit 1
+      ;;
+    *) # preserve positional arguments
+      PARAMS="$PARAMS $1"
+      shift
+      ;;
+  esac
+done
+# set positional arguments in their proper place
+eval set -- "$PARAMS"
+
+# Configs
+host="$(hostname)"
+key="vbclark-${host}"
+path="$HOME/.ssh"
+private_key_path="${path}/${key}"
+public_key_path="${private_key_path}.pub"
+
+# Get input
+read -p 'Email: ' email
+
+# Generate key
+mkdir -p "$path"
+ssh-keygen -t rsa -b 4096 -C "$email" -f "$private_key_path"
+[ $? -ne 0 ] && exit 1
+
+# Add to user-agent
+eval "$(ssh-agent -s)"
+ssh-add "$private_key_path"
+
+# Print public key
+echo "New public key:"
+cat "$public_key_path"
+
+# Print follow-up steps
+url='https://github.com/settings/ssh/new'
+printf '\n%s\n' "Add key to github: $url"
+
+# Wait for confirmation
+read -p $'\n'"<Press enter to finish>"$'\n'
+
