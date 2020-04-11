@@ -42,7 +42,7 @@ url="https://dl.google.com/linux/direct/$package_file"
 
 # Check if chrome is already installed
 dpkg-query -l "$package" &> /dev/null
-[ $? -eq 0 ] && echo "Chrome already installed!" ; exit 0
+[ $? -eq 0 ] && echo "Chrome already installed!" && exit 0
 
 # Download chrome
 wget "$url"
