@@ -36,11 +36,16 @@ done
 eval set -- "$PARAMS"
 
 # Configs
-host="$(hostname)"
-key="vbclark-${host}"
+key="${1:-"bclark-$(hostname)"}"
 path="$HOME/.ssh"
 private_key_path="${path}/${key}"
 public_key_path="${private_key_path}.pub"
+
+# Check for key
+if [[ -f "$private_key_path" ]]; then
+  echo "Aborting, key already exists: $private_key_path"
+  exit 0
+fi
 
 # Get input
 echo "Generating SSH key"
