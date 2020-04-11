@@ -8,11 +8,19 @@ NORMAL=$(tput sgr0)
 
 
 ## Display functions
-err() {
+usage () {
+  printf '%s\n' "Usage: $(basename "$0") [-h] [DIR]
+Set up a debian-based Linux machine.
+
+where:
+  -h, --help show this help text"
+}
+
+err () {
   echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')]: $*" >&2
 }
 
-step() {
+step () {
   local title="$1"
   printf '\n%s%s%s\n' "===> " "$title" "..."
 }
@@ -47,7 +55,8 @@ verify_prereqs () {
   step "Installing pre-reqs"
 
   # Need git over SSH
-  sudo apt install git jq ; echo
+  run "sudo apt install git jq"
+  echo
   run "scripts/generate-ssh-key"
 }
 
@@ -252,13 +261,19 @@ install_scripts () {
 PARAMS=""
 DRY_RUN=false
 INTERACTIVE=false
-DO_PACKAGES=false
-DO_SNAPS=false
-DO_REPOS=false
-DO_SCRIPTS=false
+declare -A DO=(  # By default, do all steps
+  [PACKAGES]=true
+  [SNAPS]=true
+  [REPOS]=true
+  [SCRIPTS]=true
+)
 
 while (( "$#" )); do
   case "$1" in
+    -h| --help)
+      usage
+      exit 0
+      ;;
     -d|--dry-run)
     	DRY_RUN=true
       shift 1
@@ -268,27 +283,27 @@ while (( "$#" )); do
       shift 1
       ;;
     -s|--steps)
-      steps="$(echo "$2" | tr '[:upper:]' '[:lower:]')"
+      steps="$(echo "$2" | tr '[:lower:]' '[:upper:]')"
 
+      # Steps are required
+      if [[ -z "$steps" ]]; then
+        err "Error: missing arg to --steps."
+        echo "Enter one or more of the following, separated by commas:"
+        printf ' %s\n' "${!DO[@]}"
+        exit 1
+      fi
+
+      # If we are setting steps, default to doing none
+      for step in "${!DO[@]}"; do
+        DO[$step]=false
+      done
+     
+      # For each valid step, mark the DO array val as true
       for step in ${steps//,/ }; do
-        case "$step" in
-          packages)
-            DO_PACKAGES=true
-            echo "Adding to pipeline: package install"
-            ;;
-          snaps)
-            DO_SNAPS=true
-            echo "Adding to pipeline: snap install"
-            ;;
-          repos)
-            DO_REPOS=true
-            echo "Adding to pipeline: repo install"
-            ;;
-          scripts)
-            DO_SCRIPTS=true
-            echo "Adding to pipeline: scripts"
-            ;;
-        esac
+        if [[ ${DO[$step]+asdf} ]]; then
+          DO["$step"]=true
+          echo "Adding to pipeline: $step"
+        fi
       done
       shift 2
       ;;
@@ -313,25 +328,25 @@ eval set -- "$PARAMS"
 ## Main
 verify_prereqs
 
-if $DO_PACKAGES; then
+if ${DO[PACKAGES]}; then
   pkgs=()
   build_list pkgs "packages"
   install_packages pkgs
 fi
 
-if $DO_SNAPS; then
+if ${DO[SNAPS]}; then
   snaps=()
   build_list snaps "snaps"
   install_snaps snaps
 fi
 
-if $DO_REPOS; then
+if ${DO[REPOS]}; then
   declare -A repos
   build_repos repos "repos"
   install_repos repos
 fi
 
-if $DO_SCRIPTS; then
+if ${DO[SCRIPTS]}; then
   scripts=()
   build_scripts scripts "scripts"
   install_scripts scripts
