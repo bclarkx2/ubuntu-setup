@@ -1,6 +1,20 @@
 #!/bin/bash
+#=============================================================================
 #
-# Set up a Debian-based Linux machine
+# FILE: setup
+#
+# USAGE: "Usage: setup [-h] [-d] [-i] [-s steps]
+#
+# DESCRIPTION: Set up a Debian-based Linux machine
+#
+# OPTIONS: see function ’usage’ below
+# REQUIREMENTS: jq
+# BUGS: ---
+# NOTES: ---
+# AUTHOR: Brian Clark, bclarkx2
+# COMPANY: ---
+#=============================================================================
+
 
 ## Constants
 declare -r BOLD="$(tput bold)"
@@ -9,6 +23,7 @@ declare -xr UBUNTU_SETUP_TODO="$(pwd)/TODO"
 
 
 ## Display functions
+
 #######################################
 # Display the script usage message
 # Arguments
@@ -17,7 +32,7 @@ declare -xr UBUNTU_SETUP_TODO="$(pwd)/TODO"
 #   Writes usage message to STDOUT
 #######################################
 usage() {
-  printf '%s\n' "Usage: $(basename "$0") [-h] [DIR]
+  printf '%s\n' "Usage: $(basename "$0") [-h] [-d] [-i] [-s steps]
 Set up a debian-based Linux machine.
 
 where:
@@ -58,6 +73,7 @@ step() {
 
 
 ## Common
+
 #######################################
 # Handle executing installation actions
 # based on whether we are in a dry run
