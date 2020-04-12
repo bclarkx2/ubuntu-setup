@@ -3,8 +3,9 @@
 # Set up a Debian-based Linux machine
 
 ## Globals
-readonly BOLD="$(tput bold)"
-readonly NORMAL="$(tput sgr0)"
+declare -r BOLD="$(tput bold)"
+declare -r NORMAL="$(tput sgr0)"
+declare -xr UBUNTU_SETUP_TODO="$(pwd)/TODO"
 
 
 ## Display functions
@@ -421,9 +422,9 @@ install_scripts() {
 
 
 ## Option parsing
-PARAMS=""
-DRY_RUN='false'
-INTERACTIVE='false'
+declare PARAMS=""
+declare DRY_RUN='false'
+declare INTERACTIVE='false'
 declare -A DO=(  # By default, do all steps
   [PACKAGES]='true'
   [SNAPS]='true'
@@ -446,7 +447,7 @@ while (( "$#" )); do
       shift 1
       ;;
     -s|--steps)
-      steps="$(echo "$2" | tr '[:lower:]' '[:upper:]')"
+      declare -u steps="$2"
 
       # Steps are required
       if [[ -z "${steps}" ]]; then
@@ -487,13 +488,15 @@ done
 # set positional arguments in their proper place
 eval set -- "${PARAMS}"
 
+# Freeze configuration variables
+readonly PARAMS DRY_RUN INTERACTIVE DO
+
 
 ## Main
 verify_prereqs
 
 # Prepare empty TODO file
-export UBUNTU_SETUP_TODO="$(pwd)/TODO"
-> "${UBUNTU_SETUP_TODO}"
+export > "${UBUNTU_SETUP_TODO}"
 
 if "${DO[PACKAGES]}"; then
   pkgs=()
