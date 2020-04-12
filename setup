@@ -2,7 +2,7 @@
 #
 # Set up a Debian-based Linux machine
 
-## Globals
+## Constants
 declare -r BOLD="$(tput bold)"
 declare -r NORMAL="$(tput sgr0)"
 declare -xr UBUNTU_SETUP_TODO="$(pwd)/TODO"
@@ -421,6 +421,58 @@ install_scripts() {
 }
 
 
+## Main
+
+#######################################
+# Perform main script logic
+# Globals
+#   UBUNTU_SETUP_TODO
+#   DO
+#   DRY-RUN
+#   INTERACTIVE
+# Arguments
+#   None
+#######################################
+main() {
+  verify_prereqs
+ 
+  # Empty TODO file at start
+  export > "${UBUNTU_SETUP_TODO}"
+  
+  if "${DO[PACKAGES]}"; then
+    local -a pkgs=()
+    build_list pkgs 'packages'
+    install_packages pkgs
+  fi
+  
+  if "${DO[SNAPS]}"; then
+    local -a snaps=()
+    build_list snaps 'snaps'
+    install_snaps snaps
+  fi
+  
+  if "${DO[REPOS]}"; then
+    local -A repos
+    build_repos repos 'repos'
+    install_repos repos
+  fi
+  
+  if "${DO[SCRIPTS]}"; then
+    local -a scripts=()
+    build_scripts scripts 'scripts'
+    install_scripts scripts
+  fi
+  
+  printf '\n%s\n' 'Setup complete!'
+  
+  # Print todo reminder, if TODO file has anything in it
+  local todo_size="$(stat -c%s "${UBUNTU_SETUP_TODO}")"
+  if (( todo_size > 0 )); then
+    printf '%s\n' '-> Check TODO file for followups!'
+  fi
+}
+
+
 ## Option parsing
 declare PARAMS=""
 declare DRY_RUN='false'
@@ -491,41 +543,5 @@ eval set -- "${PARAMS}"
 # Freeze configuration variables
 readonly PARAMS DRY_RUN INTERACTIVE DO
 
-
-## Main
-verify_prereqs
-
-# Prepare empty TODO file
-export > "${UBUNTU_SETUP_TODO}"
-
-if "${DO[PACKAGES]}"; then
-  pkgs=()
-  build_list pkgs 'packages'
-  install_packages pkgs
-fi
-
-if "${DO[SNAPS]}"; then
-  snaps=()
-  build_list snaps 'snaps'
-  install_snaps snaps
-fi
-
-if "${DO[REPOS]}"; then
-  declare -A repos
-  build_repos repos 'repos'
-  install_repos repos
-fi
-
-if "${DO[SCRIPTS]}"; then
-  scripts=()
-  build_scripts scripts 'scripts'
-  install_scripts scripts
-fi
-
-printf '\n%s\n' 'Setup complete!'
-
-# Print todo reminder, if TODO file has anything in it
-if (( "$(stat -c%s ${UBUNTU_SETUP_TODO})" > 0 )); then
-  printf '%s\n' '-> Check TODO file for followups!'
-fi
+main
 
