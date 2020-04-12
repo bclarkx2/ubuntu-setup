@@ -90,7 +90,7 @@ ask_action () {
   local -r prompt="$1"
   local -r allowed="$2"
 
-  local -r response
+  local response
   read -p "${prompt}"$'\n' response
 
   local -r code="$(echo "${response:0:1}" | tr '[:upper:]' '[:lower:]')"
@@ -160,17 +160,16 @@ edit_set () {
   local -r item_file="$1"
   local -n item_pkgs="$2"
 
-  # Read lines from pkg file on unit 3
-  while read -r -u 3 line; do
+  readarray -t lines < "${item_file}"
+  for line in "${lines[@]}"; do
     printf '\n%s\n' "${line}"
-    local -r action="$(ask_action 'y/n?' '[yn]')"
+    local action="$(ask_action 'y/n?' '[yn]')"
     
     if [[ "${action}" == "y" ]]; then
       item_pkgs+="${line}"
       printf 'Adding %s to list\n' "${line}"
     fi
-
-  done 3< "${item_file}"
+  done
 }
 
 #######################################
@@ -192,7 +191,7 @@ build_list () {
   
     print_set "${dir}" "${item_file}"
   
-    local -r action="$(ask_action '(I)nstall, (S)kip, or (E)dit?' '[ies]')"
+    local action="$(ask_action '(I)nstall, (S)kip, or (E)dit?' '[ies]')"
   
     case "${action}" in 
       i)
@@ -271,16 +270,14 @@ field () {
 build_repos () {
   local -n repo_map="$1"
   local -r dir="$2"
-  local file_repos
-  local repo
-  local name
+  local repo_file rep
 
   step 'Installing repos'
 
   for repo_file in ${dir}/*; do
  
     # Parse each repo in the file into an array
-    file_repos=()
+    local file_repos=()
     while read -r repo; do
       file_repos+=("${repo}")
     done < <(jq -c '.[]' "${repo_file}")
@@ -288,10 +285,10 @@ build_repos () {
     # Cycle through and let user select which to install
     for repo in "${file_repos[@]}"; do
       echo "${repo}" | jq -r '.'
-      action="$(ask_action '(I)nstall or (S)kip?' '[is]')"
+      local action="$(ask_action '(I)nstall or (S)kip?' '[is]')"
 
       if [[ "${action}" == "i" ]]; then
-        name="$(field "${repo}" 'name')"
+        local name="$(field "${repo}" 'name')"
         repo_map[${name}]="${repo}"
         printf "Adding %s to list\n" "${name}"
       fi
@@ -326,7 +323,7 @@ install_repos () {
     ))"
 
     # Use git to clone repos
-    local -r target="${repo[location]/#\~/$HOME}"
+    local target="${repo[location]/#\~/$HOME}"
     run "git clone ${repo[repo]} ${target}"
 
     # If installation failed, move on to the next
@@ -340,7 +337,7 @@ install_repos () {
     run "cd ${target}; git submodule foreach --recursive git checkout master"
 
     # Execute any post-install script
-    if [[ ! -z "${repo[script]}" ]]; then
+    if [[ -n "${repo[script]}" ]]; then
       run "${target}/${repo[script]}"
     fi
   done
@@ -386,7 +383,7 @@ build_scripts () {
 
     print_script "${script}"
     printf '%s\n' "$("${script}" --help)"
-    local -r action="$(ask_action 'Y/n?' '[yn]')"
+    local action="$(ask_action 'Y/n?' '[yn]')"
 
     if [[ "${action}" == "y" ]]; then
       all_scripts+=("${script}")
@@ -411,10 +408,6 @@ install_scripts () {
   local -n run_scripts="$1"
 
   step 'Running scripts'
-
-  # Prepare empty TODO file
-  export UBUNTU_SETUP_TODO="$(pwd)/TODO"
-  > "${UBUNTU_SETUP_TODO}"
 
   # Execute all selected scripts
   for script in "${scripts[@]}"; do
@@ -453,7 +446,7 @@ while (( "$#" )); do
       shift 1
       ;;
     -s|--steps)
-      local -r steps="$(echo "$2" | tr '[:lower:]' '[:upper:]')"
+      steps="$(echo "$2" | tr '[:lower:]' '[:upper:]')"
 
       # Steps are required
       if [[ -z "${steps}" ]]; then
@@ -497,6 +490,10 @@ eval set -- "${PARAMS}"
 
 ## Main
 verify_prereqs
+
+# Prepare empty TODO file
+export UBUNTU_SETUP_TODO="$(pwd)/TODO"
+> "${UBUNTU_SETUP_TODO}"
 
 if "${DO[PACKAGES]}"; then
   pkgs=()
