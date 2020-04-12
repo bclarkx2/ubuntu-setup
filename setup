@@ -1,4 +1,4 @@
-#!/usr/bin/bash 
+#!/bin/bash
 #
 # Set up a Debian-based Linux machine
 
@@ -8,18 +8,48 @@ NORMAL=$(tput sgr0)
 
 
 ## Display functions
+#######################################
+# Display the script usage message
+# Arguments
+#   None
+# Outputs
+#   Writes usage message to STDOUT
+#######################################
 usage () {
   printf '%s\n' "Usage: $(basename "$0") [-h] [DIR]
 Set up a debian-based Linux machine.
 
 where:
-  -h, --help show this help text"
+  -h, --help          - show this help text
+  -d, --dry-run       - run through script without executing anything
+  -i, --interactive   - pause before executing each install script
+  -s, --steps         - select which install steps to run. format is a
+                        comma separated list of one or more of the 
+                        following values:
+                          PACKAGES
+                          SNAPS
+                          REPOS
+                          SCRIPTS"
 }
 
+#######################################
+# Show a formatted error message
+# Arguments
+#   A series of error arguments to be printed
+# Outputs
+#   Writes all input to STDERR with a timestamp
+#######################################
 err () {
   echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')]: $*" >&2
 }
 
+#######################################
+# Print an indicator marking the start of a new script step
+# Arguments
+#   Title of the new step
+# Outputs
+#   Prints the indicator to STDOUT
+#######################################
 step () {
   local title="$1"
   printf '\n%s%s%s\n' "===> " "$title" "..."
@@ -27,6 +57,14 @@ step () {
 
 
 ## Common
+#######################################
+# Handle executing installation actions
+# based on whether we are in a dry run
+# Globals
+#   DRY_RUN
+# Arguments
+#   Statement to be executed
+#######################################
 run() {
   local _exe="$1"
   if $DRY_RUN; then
@@ -36,6 +74,18 @@ run() {
   fi
 }
 
+#######################################
+# Ask the user to select an action to take
+# Arguments
+#   Prompt to show the user, and a regex
+#   to be used to validate the first letter
+#   of the user's response (ex: '[yn]')
+# Outputs:
+#   If the user entered a valid action,
+#   the first letter is printed to STDOUT
+#   in lower case. Otherwise, nothing is
+#   printed.
+#######################################
 ask_action () {
   local prompt="$1"
   local allowed="$2"
@@ -50,7 +100,15 @@ ask_action () {
   fi
 }
 
+
 ## Prereqs
+
+#######################################
+# Ensure that all system components needed 
+# to execute the rest of the script are installed.
+# Arguments
+#   None
+#######################################
 verify_prereqs () {
   step "Installing pre-reqs"
 
@@ -62,23 +120,45 @@ verify_prereqs () {
 
 
 ## Packages
+
+#######################################
+# Print the items contained within an
+# item set.
+# Globals
+#   BOLD
+#   NORMAL
+# Arguments
+#   - The directory the item set is in
+#   - The path of the item file
+# Outputs
+#   The contents of the set in columns
+#######################################
 print_set () {
   local dir="$1"
-  local pkg_file="$2"
-  local pkg_set="$(basename $pkg_file)"
+  local item_file="$2"
+  local item_set="$(basename $item_file)"
 
-  # Print header for the package set
+  # Print header for the item set
   echo
-  echo "--- Set: ${dir}/${BOLD}${pkg_set}${NORMAL}"
+  echo "--- Set: ${dir}/${BOLD}${item_set}${NORMAL}"
 
   # Print contents of set, with two space indent
-  cat $pkg_file | column -x -c 40 | sed 's/^/  /'
+  cat $item_file | column -x -c 40 | sed 's/^/  /'
   echo
 }
 
+#######################################
+# Allow user to select some items from a set.
+# Arguments
+#   - Path to the item set file
+#   - Name of an array of items in the set
+# Outputs
+#   Asks user whether to include each
+#   item in set on STDOUT
+#######################################
 edit_set () {
-  local pkg_file="$1"
-  local -n set_pkgs="$2"
+  local item_file="$1"
+  local -n item_pkgs="$2"
 
   # Read lines from pkg file on unit 3
   while read -r -u 3 line; do
@@ -86,14 +166,22 @@ edit_set () {
     local action=$(ask_action 'y/n?' '[yn]')
     
     if [[ "$action" == "y" ]]; then
-      set_pkgs+=$line
+      item_pkgs+=$line
       printf 'Adding %s to list\n' $line
     fi
 
-  done 3< $pkg_file
+  done 3< $item_file
 }
 
-# Construct item list
+#######################################
+# Build array of items to install
+# Arguments
+#   - Name of array to contain all items
+#   - Directory containing item set files
+# Outputs
+#   Asks user what to do with each item
+#   set in the directory on STDOUT
+#######################################
 build_list () {
   local -n all_items="$1"
   local dir="$2"
@@ -120,6 +208,13 @@ build_list () {
   done
 }
 
+#######################################
+# Install selected packages
+# Arguments
+#   Name of array containing packages to install
+# Outputs
+#   Prints progress to STDOUT
+#######################################
 install_packages () {
   local -n install_pkgs="$1"
 
@@ -131,6 +226,14 @@ install_packages () {
 
 
 ## Snaps
+
+#######################################
+# Install selected snaps
+# Arguments
+#   Name of array containing snaps to install
+# Outputs
+#   Prints progress to STDOUT
+#######################################
 install_snaps () {
   local -n install_snaps="$1"
 
@@ -142,12 +245,29 @@ install_snaps () {
 
 
 ## Repos
+
+#######################################
+# Extract one field from a repo string
+# Arguments
+#   - Repo JSON string
+#   - Name of field to extract
+# Outputs
+#   Prints field value to STDOUT
+#######################################
 field () {
   local _repo="$1"
   local _field="$2"
   echo "$_repo" | jq -r ".${_field}"
 }
 
+#######################################
+# Construct map of repos to install
+# Arguments
+#   - Name of map to construct (repo name -> repo string)
+#   - Directory containing repo manifest
+# Outputs
+#   Asks user what to do with each repo on STDOUT
+#######################################
 build_repos () {
   local -n repo_map="$1"
   local dir="$2"
@@ -180,6 +300,18 @@ build_repos () {
   done
 }
 
+#######################################
+# Install selected repos and execute 
+# post-install scripts.
+# NOTE: requires git, checks out submodules
+# to master.
+# Globals
+#   HOME
+# Arguments
+#   Map of repos to install (repo name -> repo string)
+# Outputs
+#   Prints progress to STDOUT
+#######################################
 install_repos () {
   local -n repo_map="$1" 
   local repo_str
@@ -216,6 +348,17 @@ install_repos () {
 
 
 ## Scripts
+
+#######################################
+# Display a description of a script
+# Globals
+#   BOLD
+#   NORMAL
+# Arguments
+#   Path to script
+# Outputs
+#   Script header on STDOUT
+#######################################
 print_script () {
   local script="$1"
   local script_name=`basename "$script"`
@@ -223,6 +366,15 @@ print_script () {
   printf '\n%s\n' "---Script: ${script_dir}/${BOLD}${script_name}${NORMAL}"
 }
 
+#######################################
+# Build array of scripts to install
+# Arguments
+#   - Name of array to contain all scripts
+#   - Directory containing scripts
+# Outputs
+#   Asks user what to do about each 
+#   script on STDOUT
+#######################################
 build_scripts () {
   local -n all_scripts="$1"
   local dir="$2"
@@ -243,6 +395,18 @@ build_scripts () {
   done
 }
 
+#######################################
+# Install selected scripts. Will pause
+# before each script if INTERACTIVE
+# is set
+# Globals
+#   UBUNTU_SETUP_TODO
+#   INTERACTIVE
+# Arguments
+#   Name of array containing scripts to install
+# Outputs
+#   Prints progress to STDOUT
+#######################################
 install_scripts () {
   local -n run_scripts="$1"
 
@@ -360,7 +524,7 @@ fi
 
 printf '\n%s\n' 'Setup complete!'
 
-# Print todos
+# Print todo reminder, if TODO file has anything in it
 if [[ "$(stat -c%s $UBUNTU_SETUP_TODO)" -gt 0 ]]; then
   printf '%s\n' '-> Check TODO file for followups!'
 fi
