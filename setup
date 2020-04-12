@@ -429,13 +429,13 @@ install_scripts () {
 
 ## Option parsing
 PARAMS=""
-DRY_RUN=false
-INTERACTIVE=false
+DRY_RUN='false'
+INTERACTIVE='false'
 declare -A DO=(  # By default, do all steps
-  [PACKAGES]=true
-  [SNAPS]=true
-  [REPOS]=true
-  [SCRIPTS]=true
+  [PACKAGES]='true'
+  [SNAPS]='true'
+  [REPOS]='true'
+  [SCRIPTS]='true'
 )
 
 while (( "$#" )); do
@@ -445,11 +445,11 @@ while (( "$#" )); do
       exit 0
       ;;
     -d|--dry-run)
-    	DRY_RUN=true
+    	DRY_RUN='true'
       shift 1
       ;;
     -i|--interactive)
-      INTERACTIVE=true
+      INTERACTIVE='true'
       shift 1
       ;;
     -s|--steps)
@@ -465,13 +465,13 @@ while (( "$#" )); do
 
       # If we are setting steps, default to doing none
       for step in "${!DO[@]}"; do
-        DO[$step]=false
+        DO[$step]='false'
       done
      
       # For each valid step, mark the DO array val as true
       for step in "${steps//,/ }"; do
         if [[ "${DO[$step]+asdf}" ]]; then
-          DO[$step]=true
+          DO[$step]='true'
           echo "Adding to pipeline: ${step}"
         fi
       done
