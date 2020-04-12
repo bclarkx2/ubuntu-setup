@@ -1,5 +1,7 @@
-#!/usr/bin/env bash 
-
+#!/usr/bin/env bash
+#
+# Add normal PPAs
+                                                                               
 ## Globals
 USAGE="$(basename "$0") [-h] -- add external PPA repositories using apt
 

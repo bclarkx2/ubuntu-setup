@@ -1,4 +1,6 @@
-#!/usr/bin/env bash 
+#!/usr/bin/env bash
+#
+# Generate an SSH key with reasonable defaults
 
 usage () {
   printf '%s\n' "Usage: $(basename "$0") [-h] [DIR]

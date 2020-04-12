@@ -1,4 +1,6 @@
 #!/usr/bin/env bash 
+#
+# Install Google Chrome
 
 usage () {
   printf '%s\n' "Usage: $(basename "$0") [-h] [DIR]

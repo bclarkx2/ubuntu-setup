@@ -1,4 +1,6 @@
-#!/usr/bin/env bash 
+#!/usr/bin/env bash
+#
+# Configure grive backup job
 
 usage () {
   printf '%s\n' "Usage: $(basename "$0") [-h] [DIR]

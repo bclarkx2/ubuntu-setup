@@ -1,4 +1,6 @@
 #!/usr/bin/env bash 
+#
+# Set up preferred $HOME directory structure
 
 ## Globals
 DIRS=(
