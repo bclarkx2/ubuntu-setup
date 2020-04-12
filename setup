@@ -52,7 +52,7 @@ err () {
 #######################################
 step () {
   local title="$1"
-  printf '\n%s%s%s\n' "===> " "${title}" "..."
+  printf '\n%s%s%s\n' '===> ' "${title}" '...'
 }
 
 
@@ -67,7 +67,7 @@ step () {
 #######################################
 run() {
   local _exe="$1"
-  if ${DRY_RUN}; then
+  if "${DRY_RUN}"; then
     echo "Dry run: ${_exe}"
   else
     bash -c "${_exe}"
@@ -93,7 +93,7 @@ ask_action () {
   local response
   read -p "${prompt}"$'\n' response
 
-  local code="$(echo ${response:0:1} | tr '[:upper:]' '[:lower:]')"
+  local code="$(echo "${response:0:1}" | tr '[:upper:]' '[:lower:]')"
 
   if [[ "${code}" =~ ${allowed} ]]; then
     echo "${code}"
@@ -110,12 +110,12 @@ ask_action () {
 #   None
 #######################################
 verify_prereqs () {
-  step "Installing pre-reqs"
+  step 'Installing pre-reqs'
 
   # Need git over SSH
-  run "sudo apt install git jq"
+  run 'sudo apt install git jq'
   echo
-  run "scripts/generate-ssh-key"
+  run 'scripts/generate-ssh-key'
 }
 
 
@@ -136,7 +136,7 @@ verify_prereqs () {
 print_set () {
   local dir="$1"
   local item_file="$2"
-  local item_set="$(basename ${item_file})"
+  local item_set="$(basename "${item_file}")"
 
   # Print header for the item set
   echo
@@ -163,7 +163,7 @@ edit_set () {
   # Read lines from pkg file on unit 3
   while read -r -u 3 line; do
     printf '\n%s\n' "${line}"
-    local action=$(ask_action 'y/n?' '[yn]')
+    local action="$(ask_action 'y/n?' '[yn]')"
     
     if [[ "${action}" == "y" ]]; then
       item_pkgs+="${line}"
@@ -192,7 +192,7 @@ build_list () {
   
     print_set "${dir}" "${item_file}"
   
-    action=$(ask_action '(I)nstall, (S)kip, or (E)dit?' '[ies]')
+    action="$(ask_action '(I)nstall, (S)kip, or (E)dit?' '[ies]')"
   
     case "${action}" in 
       i)
@@ -218,7 +218,7 @@ build_list () {
 install_packages () {
   local -n install_pkgs="$1"
 
-  step "Installing packages"
+  step 'Installing packages'
   for pkg in "${install_pkgs[@]}"; do
     run "sudo apt install -y ${pkg}"
   done
@@ -237,7 +237,7 @@ install_packages () {
 install_snaps () {
   local -n install_snaps="$1"
 
-  step "Installing snaps"
+  step 'Installing snaps'
   for snap in "${install_snaps[@]}"; do
     run "sudo snap install ${snap}"
   done
@@ -275,7 +275,7 @@ build_repos () {
   local repo
   local name
 
-  step "Installing repos"
+  step 'Installing repos'
 
   for repo_file in ${dir}/*; do
  
@@ -288,11 +288,11 @@ build_repos () {
     # Cycle through and let user select which to install
     for repo in "${file_repos[@]}"; do
       echo "${repo}" | jq -r '.'
-      action=$(ask_action '(I)nstall or (S)kip?' '[is]')
+      action="$(ask_action '(I)nstall or (S)kip?' '[is]')"
 
       if [[ "${action}" == "i" ]]; then
-        name="$(field ${repo} 'name')"
-        repo_map["${name}"]="${repo}"
+        name="$(field "${repo}" 'name')"
+        repo_map[${name}]="${repo}"
         printf "Adding %s to list\n" "${name}"
       fi
       echo
@@ -316,7 +316,7 @@ install_repos () {
   local -n repo_map="$1" 
   local repo_str
 
-  step "Installing repos"
+  step 'Installing repos'
   for repo_str in "${repo_map[@]}"; do
    
     # Parse each repo into an assoc array using jq
@@ -326,8 +326,8 @@ install_repos () {
     ))"
 
     # Use git to clone repos
-    target=${repo[location]/#\~/$HOME}
-    run "git clone ${repo[repo]} $target"
+    target="${repo[location]/#\~/$HOME}"
+    run "git clone ${repo[repo]} ${target}"
 
     # If installation failed, move on to the next
     if [[ $? -ne 0 ]]; then
@@ -361,8 +361,8 @@ install_repos () {
 #######################################
 print_script () {
   local script="$1"
-  local script_name=`basename "${script}"`
-  local script_dir=`dirname "${script}"`
+  local script_name="$(basename "${script}")"`
+  local script_dir="$(dirname "${script}")"`
   printf '\n%s\n' "---Script: ${script_dir}/${BOLD}${script_name}${NORMAL}"
 }
 
@@ -379,13 +379,13 @@ build_scripts () {
   local -n all_scripts="$1"
   local dir="$2"
 
-  step "Collecting scripts"
+  step 'Collecting scripts'
 
   for script in ${dir}/*; do
-    local script_name=`basename "${script}"`
+    local script_name="$(basename "${script}")"
 
     print_script "${script}"
-    printf '%s\n' "$(${script} --help)"
+    printf '%s\n' "$("${script}" --help)"
     local action="$(ask_action 'Y/n?' '[yn]')"
 
     if [[ "${action}" == "y" ]]; then
@@ -410,7 +410,7 @@ build_scripts () {
 install_scripts () {
   local -n run_scripts="$1"
 
-  step "Running scripts"
+  step 'Running scripts'
 
   # Prepare empty TODO file
   export UBUNTU_SETUP_TODO="$(pwd)/TODO"
@@ -457,8 +457,8 @@ while (( "$#" )); do
 
       # Steps are required
       if [[ -z "${steps}" ]]; then
-        err "Error: missing arg to --steps."
-        echo "Enter one or more of the following, separated by commas:"
+        err 'Error: missing arg to --steps.'
+        echo 'Enter one or more of the following, separated by commas:'
         printf ' %s\n' "${!DO[@]}"
         exit 1
       fi
@@ -469,8 +469,8 @@ while (( "$#" )); do
       done
      
       # For each valid step, mark the DO array val as true
-      for step in ${steps//,/ }; do
-        if [[ ${DO[$step]+asdf} ]]; then
+      for step in "${steps//,/ }"; do
+        if [[ "${DO[$step]+asdf}" ]]; then
           DO[$step]=true
           echo "Adding to pipeline: ${step}"
         fi
@@ -498,27 +498,27 @@ eval set -- "${PARAMS}"
 ## Main
 verify_prereqs
 
-if ${DO[PACKAGES]}; then
+if "${DO[PACKAGES]}"; then
   pkgs=()
-  build_list pkgs "packages"
+  build_list pkgs 'packages'
   install_packages pkgs
 fi
 
-if ${DO[SNAPS]}; then
+if "${DO[SNAPS]}"; then
   snaps=()
-  build_list snaps "snaps"
+  build_list snaps 'snaps'
   install_snaps snaps
 fi
 
-if ${DO[REPOS]}; then
+if "${DO[REPOS]}"; then
   declare -A repos
-  build_repos repos "repos"
+  build_repos repos 'repos'
   install_repos repos
 fi
 
-if ${DO[SCRIPTS]}; then
+if "${DO[SCRIPTS]}"; then
   scripts=()
-  build_scripts scripts "scripts"
+  build_scripts scripts 'scripts'
   install_scripts scripts
 fi
 
