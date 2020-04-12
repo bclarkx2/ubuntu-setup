@@ -51,7 +51,7 @@ err () {
 #   Prints the indicator to STDOUT
 #######################################
 step () {
-  local title="$1"
+  local -r title="$1"
   printf '\n%s%s%s\n' '===> ' "${title}" '...'
 }
 
@@ -66,7 +66,7 @@ step () {
 #   Statement to be executed
 #######################################
 run() {
-  local _exe="$1"
+  local -r _exe="$1"
   if "${DRY_RUN}"; then
     echo "Dry run: ${_exe}"
   else
@@ -87,13 +87,13 @@ run() {
 #   printed.
 #######################################
 ask_action () {
-  local prompt="$1"
-  local allowed="$2"
+  local -r prompt="$1"
+  local -r allowed="$2"
 
-  local response
+  local -r response
   read -p "${prompt}"$'\n' response
 
-  local code="$(echo "${response:0:1}" | tr '[:upper:]' '[:lower:]')"
+  local -r code="$(echo "${response:0:1}" | tr '[:upper:]' '[:lower:]')"
 
   if [[ "${code}" =~ ${allowed} ]]; then
     echo "${code}"
@@ -134,9 +134,9 @@ verify_prereqs () {
 #   The contents of the set in columns
 #######################################
 print_set () {
-  local dir="$1"
-  local item_file="$2"
-  local item_set="$(basename "${item_file}")"
+  local -r dir="$1"
+  local -r item_file="$2"
+  local -r item_set="$(basename "${item_file}")"
 
   # Print header for the item set
   echo
@@ -157,13 +157,13 @@ print_set () {
 #   item in set on STDOUT
 #######################################
 edit_set () {
-  local item_file="$1"
+  local -r item_file="$1"
   local -n item_pkgs="$2"
 
   # Read lines from pkg file on unit 3
   while read -r -u 3 line; do
     printf '\n%s\n' "${line}"
-    local action="$(ask_action 'y/n?' '[yn]')"
+    local -r action="$(ask_action 'y/n?' '[yn]')"
     
     if [[ "${action}" == "y" ]]; then
       item_pkgs+="${line}"
@@ -184,7 +184,7 @@ edit_set () {
 #######################################
 build_list () {
   local -n all_items="$1"
-  local dir="$2"
+  local -r dir="$2"
 
   step "Collecting $dir"
 
@@ -192,7 +192,7 @@ build_list () {
   
     print_set "${dir}" "${item_file}"
   
-    action="$(ask_action '(I)nstall, (S)kip, or (E)dit?' '[ies]')"
+    local -r action="$(ask_action '(I)nstall, (S)kip, or (E)dit?' '[ies]')"
   
     case "${action}" in 
       i)
@@ -255,8 +255,8 @@ install_snaps () {
 #   Prints field value to STDOUT
 #######################################
 field () {
-  local _repo="$1"
-  local _field="$2"
+  local -r _repo="$1"
+  local -r _field="$2"
   echo "${_repo}" | jq -r ".${_field}"
 }
 
@@ -270,7 +270,7 @@ field () {
 #######################################
 build_repos () {
   local -n repo_map="$1"
-  local dir="$2"
+  local -r dir="$2"
   local file_repos
   local repo
   local name
@@ -326,7 +326,7 @@ install_repos () {
     ))"
 
     # Use git to clone repos
-    target="${repo[location]/#\~/$HOME}"
+    local -r target="${repo[location]/#\~/$HOME}"
     run "git clone ${repo[repo]} ${target}"
 
     # If installation failed, move on to the next
@@ -360,9 +360,9 @@ install_repos () {
 #   Script header on STDOUT
 #######################################
 print_script () {
-  local script="$1"
-  local script_name="$(basename "${script}")"`
-  local script_dir="$(dirname "${script}")"`
+  local -r script="$1"
+  local -r script_name="$(basename "${script}")"
+  local -r script_dir="$(dirname "${script}")"
   printf '\n%s\n' "---Script: ${script_dir}/${BOLD}${script_name}${NORMAL}"
 }
 
@@ -377,16 +377,16 @@ print_script () {
 #######################################
 build_scripts () {
   local -n all_scripts="$1"
-  local dir="$2"
+  local -r dir="$2"
 
   step 'Collecting scripts'
 
   for script in ${dir}/*; do
-    local script_name="$(basename "${script}")"
+    local -r script_name="$(basename "${script}")"
 
     print_script "${script}"
     printf '%s\n' "$("${script}" --help)"
-    local action="$(ask_action 'Y/n?' '[yn]')"
+    local -r action="$(ask_action 'Y/n?' '[yn]')"
 
     if [[ "${action}" == "y" ]]; then
       all_scripts+=("${script}")
@@ -453,7 +453,7 @@ while (( "$#" )); do
       shift 1
       ;;
     -s|--steps)
-      steps="$(echo "$2" | tr '[:lower:]' '[:upper:]')"
+      local -r steps="$(echo "$2" | tr '[:lower:]' '[:upper:]')"
 
       # Steps are required
       if [[ -z "${steps}" ]]; then
