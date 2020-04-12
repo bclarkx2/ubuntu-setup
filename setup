@@ -328,7 +328,7 @@ install_repos() {
     run "git clone ${repo[repo]} ${target}"
 
     # If installation failed, move on to the next
-    if (( $? > 0 )); then
+    if (( $? != 0 )); then
       err "Error cloning repo ${repo[name]}, aborting"
       continue
     fi
@@ -380,7 +380,7 @@ build_scripts() {
   step 'Collecting scripts'
 
   for script in ${dir}/*; do
-    local -r script_name="$(basename "${script}")"
+    local script_name="$(basename "${script}")"
 
     print_script "${script}"
     printf '%s\n' "$("${script}" --help)"
@@ -437,7 +437,7 @@ main() {
   verify_prereqs
  
   # Empty TODO file at start
-  export > "${UBUNTU_SETUP_TODO}"
+  > "${UBUNTU_SETUP_TODO}"
   
   if "${DO[PACKAGES]}"; then
     local -a pkgs=()
