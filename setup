@@ -543,5 +543,5 @@ eval set -- "${PARAMS}"
 # Freeze configuration variables
 readonly PARAMS DRY_RUN INTERACTIVE DO
 
-main
+main "$@"
 
