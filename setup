@@ -15,7 +15,7 @@ readonly NORMAL="$(tput sgr0)"
 # Outputs
 #   Writes usage message to STDOUT
 #######################################
-usage () {
+usage() {
   printf '%s\n' "Usage: $(basename "$0") [-h] [DIR]
 Set up a debian-based Linux machine.
 
@@ -39,7 +39,7 @@ where:
 # Outputs
 #   Writes all input to STDERR with a timestamp
 #######################################
-err () {
+err() {
   echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')]: $*" >&2
 }
 
@@ -50,7 +50,7 @@ err () {
 # Outputs
 #   Prints the indicator to STDOUT
 #######################################
-step () {
+step() {
   local -r title="$1"
   printf '\n%s%s%s\n' '===> ' "${title}" '...'
 }
@@ -86,7 +86,7 @@ run() {
 #   in lower case. Otherwise, nothing is
 #   printed.
 #######################################
-ask_action () {
+ask_action() {
   local -r prompt="$1"
   local -r allowed="$2"
 
@@ -109,7 +109,7 @@ ask_action () {
 # Arguments
 #   None
 #######################################
-verify_prereqs () {
+verify_prereqs() {
   step 'Installing pre-reqs'
 
   # Need git over SSH
@@ -133,7 +133,7 @@ verify_prereqs () {
 # Outputs
 #   The contents of the set in columns
 #######################################
-print_set () {
+print_set() {
   local -r dir="$1"
   local -r item_file="$2"
   local -r item_set="$(basename "${item_file}")"
@@ -156,7 +156,7 @@ print_set () {
 #   Asks user whether to include each
 #   item in set on STDOUT
 #######################################
-edit_set () {
+edit_set() {
   local -r item_file="$1"
   local -n item_pkgs="$2"
 
@@ -181,7 +181,7 @@ edit_set () {
 #   Asks user what to do with each item
 #   set in the directory on STDOUT
 #######################################
-build_list () {
+build_list() {
   local -n all_items="$1"
   local -r dir="$2"
 
@@ -214,7 +214,7 @@ build_list () {
 # Outputs
 #   Prints progress to STDOUT
 #######################################
-install_packages () {
+install_packages() {
   local -n install_pkgs="$1"
 
   step 'Installing packages'
@@ -233,7 +233,7 @@ install_packages () {
 # Outputs
 #   Prints progress to STDOUT
 #######################################
-install_snaps () {
+install_snaps() {
   local -n install_snaps="$1"
 
   step 'Installing snaps'
@@ -253,7 +253,7 @@ install_snaps () {
 # Outputs
 #   Prints field value to STDOUT
 #######################################
-field () {
+field() {
   local -r _repo="$1"
   local -r _field="$2"
   echo "${_repo}" | jq -r ".${_field}"
@@ -267,7 +267,7 @@ field () {
 # Outputs
 #   Asks user what to do with each repo on STDOUT
 #######################################
-build_repos () {
+build_repos() {
   local -n repo_map="$1"
   local -r dir="$2"
   local repo_file rep
@@ -309,7 +309,7 @@ build_repos () {
 # Outputs
 #   Prints progress to STDOUT
 #######################################
-install_repos () {
+install_repos() {
   local -n repo_map="$1" 
   local repo_str
 
@@ -356,7 +356,7 @@ install_repos () {
 # Outputs
 #   Script header on STDOUT
 #######################################
-print_script () {
+print_script() {
   local -r script="$1"
   local -r script_name="$(basename "${script}")"
   local -r script_dir="$(dirname "${script}")"
@@ -372,7 +372,7 @@ print_script () {
 #   Asks user what to do about each 
 #   script on STDOUT
 #######################################
-build_scripts () {
+build_scripts() {
   local -n all_scripts="$1"
   local -r dir="$2"
 
@@ -404,7 +404,7 @@ build_scripts () {
 # Outputs
 #   Prints progress to STDOUT
 #######################################
-install_scripts () {
+install_scripts() {
   local -n run_scripts="$1"
 
   step 'Running scripts'
