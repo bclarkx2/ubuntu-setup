@@ -180,9 +180,9 @@ edit_set() {
   readarray -t lines < "${item_file}"
   for line in "${lines[@]}"; do
     printf '\n%s\n' "${line}"
-    local action="$(ask_action 'y/n?' '[yn]')"
+    local action="$(ask_action 'y/n?' '[YN]')"
     
-    if [[ "${action}" == "y" ]]; then
+    if [[ "${action}" == "Y" ]]; then
       item_pkgs+="${line}"
       printf 'Adding %s to list\n' "${line}"
     fi
@@ -208,13 +208,13 @@ build_list() {
   
     print_set "${dir}" "${item_file}"
   
-    local action="$(ask_action '(I)nstall, (S)kip, or (E)dit?' '[ies]')"
+    local action="$(ask_action '(I)nstall, (S)kip, or (E)dit?' '[IES]')"
   
     case "${action}" in 
-      i)
+      I)
         mapfile -t -O "${#all_items[@]}" all_items < "${item_file}"
         ;;
-      e)
+      E)
         edit_set "${item_file}" all_items
         ;;
       *)
@@ -302,9 +302,9 @@ build_repos() {
     # Cycle through and let user select which to install
     for repo in "${file_repos[@]}"; do
       echo "${repo}" | jq --raw-output '.'
-      local action="$(ask_action '(I)nstall or (S)kip?' '[is]')"
+      local action="$(ask_action '(I)nstall or (S)kip?' '[IS]')"
 
-      if [[ "${action}" == "i" ]]; then
+      if [[ "${action}" == "I" ]]; then
         local name="$(field "${repo}" 'name')"
         repo_map[${name}]="${repo}"
         printf "Adding %s to list\n" "${name}"
@@ -400,9 +400,9 @@ build_scripts() {
 
     print_script "${script}"
     printf '%s\n' "$("${script}" --help)"
-    local action="$(ask_action 'Y/n?' '[yn]')"
+    local action="$(ask_action 'Y/n?' '[YN]')"
 
-    if [[ "${action}" == "y" ]]; then
+    if [[ "${action}" == "Y" ]]; then
       all_scripts+=("${script}")
     fi
 
