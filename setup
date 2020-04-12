@@ -3,8 +3,8 @@
 # Set up a Debian-based Linux machine
 
 ## Globals
-BOLD=$(tput bold)
-NORMAL=$(tput sgr0)
+BOLD="$(tput bold)"
+NORMAL="$(tput sgr0)"
 
 
 ## Display functions
@@ -52,7 +52,7 @@ err () {
 #######################################
 step () {
   local title="$1"
-  printf '\n%s%s%s\n' "===> " "$title" "..."
+  printf '\n%s%s%s\n' "===> " "${title}" "..."
 }
 
 
@@ -67,10 +67,10 @@ step () {
 #######################################
 run() {
   local _exe="$1"
-  if $DRY_RUN; then
-    echo "Dry run: $_exe"
+  if ${DRY_RUN}; then
+    echo "Dry run: ${_exe}"
   else
-    bash -c "$_exe"
+    bash -c "${_exe}"
   fi
 }
 
@@ -91,12 +91,12 @@ ask_action () {
   local allowed="$2"
 
   local response
-  read -p "$prompt"$'\n' response
+  read -p "${prompt}"$'\n' response
 
   local code="$(echo ${response:0:1} | tr '[:upper:]' '[:lower:]')"
 
-  if [[ "$code" =~ $allowed ]]; then
-    echo $code
+  if [[ "${code}" =~ ${allowed} ]]; then
+    echo "${code}"
   fi
 }
 
@@ -136,14 +136,14 @@ verify_prereqs () {
 print_set () {
   local dir="$1"
   local item_file="$2"
-  local item_set="$(basename $item_file)"
+  local item_set="$(basename ${item_file})"
 
   # Print header for the item set
   echo
   echo "--- Set: ${dir}/${BOLD}${item_set}${NORMAL}"
 
   # Print contents of set, with two space indent
-  cat $item_file | column -x -c 40 | sed 's/^/  /'
+  cat "${item_file}" | column -x -c 40 | sed 's/^/  /'
   echo
 }
 
@@ -162,15 +162,15 @@ edit_set () {
 
   # Read lines from pkg file on unit 3
   while read -r -u 3 line; do
-    printf '\n%s\n' $line
+    printf '\n%s\n' "${line}"
     local action=$(ask_action 'y/n?' '[yn]')
     
-    if [[ "$action" == "y" ]]; then
-      item_pkgs+=$line
-      printf 'Adding %s to list\n' $line
+    if [[ "${action}" == "y" ]]; then
+      item_pkgs+="${line}"
+      printf 'Adding %s to list\n' "${line}"
     fi
 
-  done 3< $item_file
+  done 3< "${item_file}"
 }
 
 #######################################
@@ -190,16 +190,16 @@ build_list () {
 
   for item_file in ${dir}/*; do
   
-    print_set "$dir" "$item_file"
+    print_set "${dir}" "${item_file}"
   
     action=$(ask_action '(I)nstall, (S)kip, or (E)dit?' '[ies]')
   
-    case "$action" in 
+    case "${action}" in 
       i)
-        mapfile -t -O "${#all_items[@]}" all_items < "$item_file"
+        mapfile -t -O "${#all_items[@]}" all_items < "${item_file}"
         ;;
       e)
-        edit_set "$item_file" all_items
+        edit_set "${item_file}" all_items
         ;;
       *)
         continue
@@ -220,7 +220,7 @@ install_packages () {
 
   step "Installing packages"
   for pkg in "${install_pkgs[@]}"; do
-    run "sudo apt install -y $pkg"
+    run "sudo apt install -y ${pkg}"
   done
 }
 
@@ -239,7 +239,7 @@ install_snaps () {
 
   step "Installing snaps"
   for snap in "${install_snaps[@]}"; do
-    run "sudo snap install $snap"
+    run "sudo snap install ${snap}"
   done
 }
 
@@ -257,7 +257,7 @@ install_snaps () {
 field () {
   local _repo="$1"
   local _field="$2"
-  echo "$_repo" | jq -r ".${_field}"
+  echo "${_repo}" | jq -r ".${_field}"
 }
 
 #######################################
@@ -282,18 +282,18 @@ build_repos () {
     # Parse each repo in the file into an array
     file_repos=()
     while read -r repo; do
-      file_repos+=("$repo")
-    done < <(jq -c '.[]' "$repo_file")
+      file_repos+=("${repo}")
+    done < <(jq -c '.[]' "${repo_file}")
 
     # Cycle through and let user select which to install
     for repo in "${file_repos[@]}"; do
-      echo "$repo" | jq -r '.'
+      echo "${repo}" | jq -r '.'
       action=$(ask_action '(I)nstall or (S)kip?' '[is]')
 
-      if [[ "$action" == "i" ]]; then
-        name="$(field $repo 'name')"
-        repo_map["$name"]="$repo"
-        printf "Adding %s to list\n" "$name"
+      if [[ "${action}" == "i" ]]; then
+        name="$(field ${repo} 'name')"
+        repo_map["${name}"]="${repo}"
+        printf "Adding %s to list\n" "${name}"
       fi
       echo
     done
@@ -321,7 +321,7 @@ install_repos () {
    
     # Parse each repo into an assoc array using jq
     local -A repo="($(
-      echo "$repo_str" | \
+      echo "${repo_str}" | \
       jq -r '. | to_entries | .[] | "[" + .key + "]=\"" + .value + "\""'
     ))"
 
@@ -336,12 +336,12 @@ install_repos () {
     fi
 
     # Handle submodules
-    run "cd $target; git submodule update --init --recursive" ;
-    run "cd $target; git submodule foreach --recursive git checkout master"
+    run "cd ${target}; git submodule update --init --recursive" ;
+    run "cd ${target}; git submodule foreach --recursive git checkout master"
 
     # Execute any post-install script
     if [[ ! -z "${repo[script]}" ]]; then
-      run "$target/${repo[script]}"
+      run "${target}/${repo[script]}"
     fi
   done
 }
@@ -361,8 +361,8 @@ install_repos () {
 #######################################
 print_script () {
   local script="$1"
-  local script_name=`basename "$script"`
-  local script_dir=`dirname "$script"`
+  local script_name=`basename "${script}"`
+  local script_dir=`dirname "${script}"`
   printf '\n%s\n' "---Script: ${script_dir}/${BOLD}${script_name}${NORMAL}"
 }
 
@@ -382,14 +382,14 @@ build_scripts () {
   step "Collecting scripts"
 
   for script in ${dir}/*; do
-    local script_name=`basename "$script"`
+    local script_name=`basename "${script}"`
 
-    print_script "$script"
-    printf '%s\n' "$($script --help)"
+    print_script "${script}"
+    printf '%s\n' "$(${script} --help)"
     local action="$(ask_action 'Y/n?' '[yn]')"
 
-    if [[ "$action" == "y" ]]; then
-      all_scripts+=("$script")
+    if [[ "${action}" == "y" ]]; then
+      all_scripts+=("${script}")
     fi
 
   done
@@ -414,15 +414,15 @@ install_scripts () {
 
   # Prepare empty TODO file
   export UBUNTU_SETUP_TODO="$(pwd)/TODO"
-  > $UBUNTU_SETUP_TODO
+  > "${UBUNTU_SETUP_TODO}"
 
   # Execute all selected scripts
   for script in "${scripts[@]}"; do
     
-    print_script "$script"
+    print_script "${script}"
     
-    $INTERACTIVE && read -s -r -p "<Press enter to continue>"$'\n'
-    run "$script"
+    "${INTERACTIVE}" && read -s -r -p "<Press enter to continue>"$'\n'
+    run "${script}"
   done
 }
 
@@ -456,7 +456,7 @@ while (( "$#" )); do
       steps="$(echo "$2" | tr '[:lower:]' '[:upper:]')"
 
       # Steps are required
-      if [[ -z "$steps" ]]; then
+      if [[ -z "${steps}" ]]; then
         err "Error: missing arg to --steps."
         echo "Enter one or more of the following, separated by commas:"
         printf ' %s\n' "${!DO[@]}"
@@ -471,8 +471,8 @@ while (( "$#" )); do
       # For each valid step, mark the DO array val as true
       for step in ${steps//,/ }; do
         if [[ ${DO[$step]+asdf} ]]; then
-          DO["$step"]=true
-          echo "Adding to pipeline: $step"
+          DO[$step]=true
+          echo "Adding to pipeline: ${step}"
         fi
       done
       shift 2
@@ -486,13 +486,13 @@ while (( "$#" )); do
       exit 1
       ;;
     *) # preserve positional arguments
-      PARAMS="$PARAMS $1"
+      PARAMS="${PARAMS} $1"
       shift
       ;;
   esac
 done
 # set positional arguments in their proper place
-eval set -- "$PARAMS"
+eval set -- "${PARAMS}"
 
 
 ## Main
@@ -525,7 +525,7 @@ fi
 printf '\n%s\n' 'Setup complete!'
 
 # Print todo reminder, if TODO file has anything in it
-if [[ "$(stat -c%s $UBUNTU_SETUP_TODO)" -gt 0 ]]; then
+if [[ "$(stat -c%s ${UBUNTU_SETUP_TODO})" -gt 0 ]]; then
   printf '%s\n' '-> Check TODO file for followups!'
 fi
 
