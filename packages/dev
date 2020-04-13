@@ -1,3 +1,4 @@
-curl
-traceroute
 cmake
+make
+shellcheck
+traceroute

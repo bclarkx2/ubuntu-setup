@@ -1,20 +1,38 @@
 [
-    {
-        "name": "bin",
-        "repo": "git@github.com:bclarkx2/bin.git",
-        "script": "lines",
-        "location": "~/tmp/repos/bin"
-    },
-    {
-        "name": "dotfiles",
-        "repo": "git@github.com:bclarkx2/dotfiles.git",
-        "script": "disperse.py",
-        "location": "~/tmp/repos/dotfiles"
-    },
-    {
-        "name": "latex",
-        "repo": "git@github.com:bclarkx2/latex.git",
-        "script": "",
-        "location": "~/tmp/repos/latex"
-    }
+  {
+    "name": "bin",
+    "repo": "git@github.com:bclarkx2/bin",
+    "script": "lines",
+    "location": "~/bin"
+  },
+  {
+    "name": "dotfiles",
+    "repo": "git@github.com:bclarkx2/dotfiles",
+    "script": "disperse.py",
+    "location": "~/dotfiles"
+  },
+  {
+    "name": "gnome-settings",
+    "repo": "git@github.com:bclarkx2/gnome-settings",
+    "script": "",
+    "location": "~/tools/gnome-settings"
+  },
+  {
+    "name": "goto",
+    "repo": "git@github.com:bclarkx2/goto",
+    "script": "install.sh",
+    "location": "~/tools/goto"
+  },
+  {
+    "name": "latex",
+    "repo": "git@github.com:bclarkx2/latex",
+    "script": "",
+    "location": "~/texmf/tex/latex"
+  },
+  {
+    "name": "pwd",
+    "repo": "git@github.com:bclarkx2/pwd",
+    "script": "install.sh",
+    "location": "~/tools/pwd"
+  }
 ]
