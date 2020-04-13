@@ -16,6 +16,12 @@
 #=============================================================================
 
 
+## Settings
+set -e            # Fail on invalid command
+set -u            # Fail on unset variable
+set -o pipefail   # Pipe status is rightmost non-zero exit code
+
+
 ## Constants
 declare -r BOLD="$(tput bold)"
 declare -r NORMAL="$(tput sgr0)"
@@ -341,7 +347,7 @@ install_repos() {
 
     # Use git to clone repos
     local target="${repo[location]/#\~/$HOME}"
-    run "git clone ${repo[repo]} ${target}"
+    run "git clone ${repo[repo]} ${target} || true"
 
     # If installation failed, move on to the next
     if (( $? != 0 )); then
