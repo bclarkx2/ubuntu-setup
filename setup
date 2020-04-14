@@ -241,9 +241,7 @@ install_packages() {
   local -n install_pkgs="$1"
 
   step 'Installing packages'
-  for pkg in "${install_pkgs[@]}"; do
-    run "sudo apt install -y ${pkg}"
-  done
+  run "sudo apt install -y ${install_pkgs[@]}"
 }
 
 
