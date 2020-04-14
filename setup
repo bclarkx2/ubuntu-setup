@@ -3,7 +3,7 @@
 #
 # FILE: setup
 #
-# USAGE: "Usage: setup [-h] [-d] [-i] [-s steps]
+# USAGE: setup [-h] [-d] [-i] [-s steps]
 #
 # DESCRIPTION: Set up a Debian-based Linux machine
 #
