@@ -47,6 +47,11 @@ config_file="${GRIVE_OAUTH_JSON:-$HOME/.config/grive/grive.json}"
 log_file="${GRIVE_LOG:-$HOME/.grive_log}"
 
 
+## Download grive
+sudo add-apt-repository ppa:nilarimogard/webupd8
+sudo apt install -y grive
+
+
 ## Ensure needed files exist
 mkdir -p "$(dirname $config_file)"
 touch "$log_file"
