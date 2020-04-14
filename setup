@@ -241,7 +241,7 @@ install_packages() {
   local -n install_pkgs="$1"
 
   step 'Installing packages'
-  run "sudo apt install -y ${install_pkgs[@]}"
+  run "sudo apt install -y ${install_pkgs[*]}"
 }
 
 
@@ -258,9 +258,7 @@ install_snaps() {
   local -n install_snaps="$1"
 
   step 'Installing snaps'
-  for snap in "${install_snaps[@]}"; do
-    run "sudo snap install ${snap}"
-  done
+  run "sudo snap install ${install_snaps[*]}"
 }
 
 
