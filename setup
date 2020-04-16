@@ -189,7 +189,7 @@ edit_set() {
     local action="$(ask_action 'y/n?' '[YN]')"
     
     if [[ "${action}" == "Y" ]]; then
-      item_pkgs+="${line}"
+      item_pkgs+=("${line}")
       printf 'Adding %s to list\n' "${line}"
     fi
   done
@@ -258,7 +258,9 @@ install_snaps() {
   local -n install_snaps="$1"
 
   step 'Installing snaps'
-  run "sudo snap install ${install_snaps[*]}"
+  for snap in "${install_snaps[@]}"; do
+    run "sudo snap install $snap"
+  done
 }
 
 
