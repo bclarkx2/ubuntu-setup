@@ -277,7 +277,7 @@ install_snaps() {
 field() {
   local -r _repo="$1"
   local -r _field="$2"
-  echo "${_repo}" | jq --raw-input ".${_field}"
+  echo "${_repo}" | jq ".${_field}"
 }
 
 #######################################
