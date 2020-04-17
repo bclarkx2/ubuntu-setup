@@ -2,13 +2,13 @@
   {
     "name": "bin",
     "repo": "git@github.com:bclarkx2/bin",
-    "script": "lines",
+    "script": "",
     "location": "~/bin"
   },
   {
     "name": "dotfiles",
     "repo": "git@github.com:bclarkx2/dotfiles",
-    "script": "disperse.py",
+    "script": "disperse",
     "location": "~/dotfiles"
   },
   {
