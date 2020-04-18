@@ -53,5 +53,5 @@ wget "$url"
 sudo dpkg -i "$package_file"
 
 # Remove package
-rm "$package"
+rm "$package_file"
 
