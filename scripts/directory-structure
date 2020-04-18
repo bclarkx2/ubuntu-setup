@@ -1,0 +1,72 @@
+#!/usr/bin/env bash 
+#
+# Set up preferred $HOME directory structure
+
+## Globals
+DIRS=(
+  "data/"
+  "downloads/"
+  "local/"
+  "local/bin"
+  "local/dotfiles"
+  "projects/"
+  "snap/"
+  "tmp/"
+  "tools/"
+  "vm/"
+)
+
+usage () {
+  printf '%s\n' "Usage: $(basename "$0") [-h] [DIR]
+Organize DIR according to typical $HOME layout. Example:
+
+DIR/"
+  printf '  %s\n' "${DIRS[@]}"
+  printf '\n%s\n' "where:
+  -h,--help show this help text"
+}
+
+
+## Option parsing
+PARAMS=""
+
+while (( "$#" )); do
+  case "$1" in
+    -h|--help)
+      usage
+      exit 1
+      ;;
+    --) # end argument parsing
+      shift
+      break
+      ;;
+    -*|--*=) # unsupported flags
+      echo "Error: Unsupported flag $1" >&2
+      usage
+      exit 1
+      ;;
+    *) # preserve positional arguments
+      PARAMS="$PARAMS $1"
+      shift
+      ;;
+  esac
+done
+# set positional arguments in their proper place
+eval set -- "$PARAMS"
+positional=($PARAMS)
+home_dir="${positional[0]:-"$HOME"}"
+
+
+## Remove existing, empty dirs
+find $home_dir \
+  -mindepth 1 \
+  -maxdepth 1 \
+  -type d \
+  -print \
+  -delete
+
+
+## Create desired dirs
+for d in "${DIRS[@]}"; do
+  mkdir -p "${home_dir}/${d}"
+done

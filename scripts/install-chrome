@@ -1,0 +1,57 @@
+#!/usr/bin/env bash 
+#
+# Install Google Chrome
+
+usage () {
+  printf '%s\n' "Usage: $(basename "$0") [-h] [DIR]
+Download and install Google Chrome.
+
+where:
+  -h,--help show this help text"
+}
+
+## Option parsing
+PARAMS=""
+
+while (( "$#" )); do
+  case "$1" in
+    -h|--help)
+      usage
+      exit 1
+      ;;
+    --) # end argument parsing
+      shift
+      break
+      ;;
+    -*|--*=) # unsupported flags
+      echo "Error: Unsupported flag $1" >&2
+      usage
+      exit 1
+      ;;
+    *) # preserve positional arguments
+      PARAMS="$PARAMS $1"
+      shift
+      ;;
+  esac
+done
+# set positional arguments in their proper place
+eval set -- "$PARAMS"
+
+# Configuration
+package='google-chrome-stable'
+package_file="${package}_current_amd64.deb"
+url="https://dl.google.com/linux/direct/$package_file"
+
+# Check if chrome is already installed
+dpkg-query -l "$package" &> /dev/null
+[ $? -eq 0 ] && echo "Chrome already installed!" && exit 0
+
+# Download chrome
+wget "$url"
+
+# Install chrome
+sudo dpkg -i "$package_file"
+
+# Remove package
+rm "$package_file"
+

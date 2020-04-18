@@ -1,0 +1,90 @@
+#!/usr/bin/env bash
+#
+# Configure grive backup job
+
+usage () {
+  printf '%s\n' "Usage: $(basename "$0") [-h] [DIR]
+Configure grive in the $HOME/data directory.
+
+NOTE: depends on the following being installed:
+* github.com:bclarkx2/dotfiles
+* github.com:bclarkx2/bin
+
+where:
+  -h,--help show this help text"
+}
+
+## Option parsing
+PARAMS=""
+
+while (( "$#" )); do
+  case "$1" in
+    -h|--help)
+      usage
+      exit 1
+      ;;
+    --) # end argument parsing
+      shift
+      break
+      ;;
+    -*|--*=) # unsupported flags
+      echo "Error: Unsupported flag $1" >&2
+      usage
+      exit 1
+      ;;
+    *) # preserve positional arguments
+      PARAMS="$PARAMS $1"
+      shift
+      ;;
+  esac
+done
+# set positional arguments in their proper place
+eval set -- "$PARAMS"
+
+
+## Configs
+config_file="${GRIVE_OAUTH_JSON:-$HOME/.config/grive/grive.json}"
+log_file="${GRIVE_LOG:-$HOME/.grive_log}"
+
+
+## Download grive
+sudo add-apt-repository ppa:nilarimogard/webupd8
+sudo apt install -y grive
+
+
+## Ensure needed files exist
+mkdir -p "$(dirname $config_file)"
+touch "$log_file"
+
+
+## Search for pre-existing job in crontab
+already_exists="$(crontab -l | grep 'grive')"  # Use currently logged in user
+
+
+## Ensure job exists
+if [[ -z "$already_exists" ]]; then
+  
+  # Form job string
+  job="*/10 * * * * $HOME/bin/grive-oauth -f $config_file > $log_file 2>&1"
+ 
+  # Install job to crontab 
+  (crontab -l 2>/dev/null; echo "$job") | crontab -
+
+  echo "Creating job: $job"
+else
+  echo "Job already created: $already_exists"
+fi
+
+
+## Write follow ups
+if [[ ! -z $UBUNTU_SETUP_TODO ]]; then
+  url='https://console.cloud.google.com/apis/credentials?folder=&organizationId=&project=mygrive-262819'
+  cmd='grive-copy <credentials_file>'
+
+  printf '%s\n\n' \
+"---GRIVE---
+1. Download client credentials: $url
+2. Install credentials: $cmd" \
+    >> $UBUNTU_SETUP_TODO
+fi
+

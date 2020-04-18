@@ -1,1 +1,7 @@
 __pycache__
+
+# Vim files
+**/*.swp
+
+# TODO files
+**/TODO

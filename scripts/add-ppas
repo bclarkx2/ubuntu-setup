@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+#
+# Add normal PPAs
+                                                                               
+## Globals
+USAGE="$(basename "$0") [-h] -- add external PPA repositories using apt
+
+where:
+  -h,--help show this help text"
+
+
+## Option parsing
+PARAMS=""
+
+while (( "$#" )); do
+  case "$1" in
+    -h|--help)
+      echo "$USAGE"
+      exit 1
+      ;;
+    --) # end argument parsing
+      shift
+      break
+      ;;
+    -*|--*=) # unsupported flags
+      echo "Error: Unsupported flag $1" >&2
+      echo "$USAGE"
+      exit 1
+      ;;
+    *) # preserve positional arguments
+      PARAMS="$PARAMS $1"
+      shift
+      ;;
+  esac
+done
+# set positional arguments in their proper place
+eval set -- "$PARAMS"
+
+ppas=()
+
+for ppa in "${ppas[@]}"; do
+  echo "Adding ppa: $ppa"
+  sudo add-apt-repository "$ppa"
+done

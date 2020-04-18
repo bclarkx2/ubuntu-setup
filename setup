@@ -1,0 +1,567 @@
+#!/bin/bash
+#=============================================================================
+#
+# FILE: setup
+#
+# USAGE: setup [-h] [-d] [-i] [-s steps]
+#
+# DESCRIPTION: Set up a Debian-based Linux machine
+#
+# OPTIONS: see function ’usage’ below
+# REQUIREMENTS: jq
+# BUGS: ---
+# NOTES: ---
+# AUTHOR: Brian Clark, bclarkx2
+# COMPANY: ---
+#=============================================================================
+
+
+## Settings
+set -e            # Fail on invalid command
+set -u            # Fail on unset variable
+set -o pipefail   # Pipe status is rightmost non-zero exit code
+
+
+## Constants
+declare -r BOLD="$(tput bold)"
+declare -r NORMAL="$(tput sgr0)"
+declare -xr UBUNTU_SETUP_TODO="$(pwd)/TODO"
+
+
+## Display functions
+
+#######################################
+# Display the script usage message
+# Arguments
+#   None
+# Outputs
+#   Writes usage message to STDOUT
+#######################################
+usage() {
+  printf '%s\n' "Usage: $(basename "$0") [-h] [-d] [-i] [-s steps]
+Set up a debian-based Linux machine.
+
+where:
+  -h, --help          - show this help text
+  -d, --dry-run       - run through script without executing anything
+  -i, --interactive   - pause before executing each install script
+  -s, --steps         - select which install steps to run. format is a
+                        comma separated list of one or more of the 
+                        following values:
+                          PACKAGES
+                          SNAPS
+                          REPOS
+                          SCRIPTS"
+}
+
+#######################################
+# Show a formatted error message
+# Arguments
+#   A series of error arguments to be printed
+# Outputs
+#   Writes all input to STDERR with a timestamp
+#######################################
+err() {
+  echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')]: $*" >&2
+}
+
+#######################################
+# Print an indicator marking the start of a new script step
+# Arguments
+#   Title of the new step
+# Outputs
+#   Prints the indicator to STDOUT
+#######################################
+step() {
+  local -r title="$1"
+  printf '\n%s%s%s\n' '===> ' "${title}" '...'
+}
+
+
+## Common
+
+#######################################
+# Handle executing installation actions
+# based on whether we are in a dry run
+# Globals
+#   DRY_RUN
+# Arguments
+#   Statement to be executed
+#######################################
+run() {
+  local -r _exe="$1"
+  if "${DRY_RUN}"; then
+    echo "Dry run: ${_exe}"
+  else
+    bash -c "${_exe}"
+  fi
+}
+
+#######################################
+# Ask the user to select an action to take
+# Arguments
+#   Prompt to show the user, and a regex
+#   to be used to validate the first letter
+#   of the user's response (ex: '[yn]')
+# Outputs:
+#   If the user entered a valid action,
+#   the first letter is printed to STDOUT
+#   in lower case. Otherwise, nothing is
+#   printed.
+#######################################
+ask_action() {
+  local -r prompt="$1"
+  local -r allowed="$2"
+
+  local response
+  read -p "${prompt}"$'\n' response
+
+  local -ru code="${response:0:1}"
+
+  if [[ "${code}" =~ ${allowed} ]]; then
+    echo "${code}"
+  fi
+}
+
+
+## Prereqs
+
+#######################################
+# Ensure that all system components needed 
+# to execute the rest of the script are installed.
+# Arguments
+#   None
+#######################################
+verify_prereqs() {
+  step 'Installing pre-reqs'
+
+  # Need git over SSH
+  run 'sudo apt install git jq'
+  echo
+  run 'scripts/generate-ssh-key'
+}
+
+
+## Packages
+
+#######################################
+# Print the items contained within an
+# item set.
+# Globals
+#   BOLD
+#   NORMAL
+# Arguments
+#   - The directory the item set is in
+#   - The path of the item file
+# Outputs
+#   The contents of the set in columns
+#######################################
+print_set() {
+  local -r dir="$1"
+  local -r item_file="$2"
+  local -r item_set="$(basename "${item_file}")"
+
+  # Print header for the item set
+  echo
+  echo "--- Set: ${dir}/${BOLD}${item_set}${NORMAL}"
+
+  # Print contents of set, with two space indent
+  cat "${item_file}" | column -x -c 40 | sed 's/^/  /'
+  echo
+}
+
+#######################################
+# Allow user to select some items from a set.
+# Arguments
+#   - Path to the item set file
+#   - Name of an array of items in the set
+# Outputs
+#   Asks user whether to include each
+#   item in set on STDOUT
+#######################################
+edit_set() {
+  local -r item_file="$1"
+  local -n item_pkgs="$2"
+
+  readarray -t lines < "${item_file}"
+  for line in "${lines[@]}"; do
+    printf '\n%s\n' "${line}"
+    local action="$(ask_action 'y/n?' '[YN]')"
+    
+    if [[ "${action}" == "Y" ]]; then
+      item_pkgs+=("${line}")
+      printf 'Adding %s to list\n' "${line}"
+    fi
+  done
+}
+
+#######################################
+# Build array of items to install
+# Arguments
+#   - Name of array to contain all items
+#   - Directory containing item set files
+# Outputs
+#   Asks user what to do with each item
+#   set in the directory on STDOUT
+#######################################
+build_list() {
+  local -n all_items="$1"
+  local -r dir="$2"
+
+  step "Collecting $dir"
+
+  for item_file in ${dir}/*; do
+  
+    print_set "${dir}" "${item_file}"
+  
+    local action="$(ask_action '(I)nstall, (S)kip, or (E)dit?' '[IES]')"
+  
+    case "${action}" in 
+      I)
+        mapfile -t -O "${#all_items[@]}" all_items < "${item_file}"
+        ;;
+      E)
+        edit_set "${item_file}" all_items
+        ;;
+      *)
+        continue
+        ;;
+    esac
+  done
+}
+
+#######################################
+# Install selected packages
+# Arguments
+#   Name of array containing packages to install
+# Outputs
+#   Prints progress to STDOUT
+#######################################
+install_packages() {
+  local -n install_pkgs="$1"
+
+  step 'Installing packages'
+  run "sudo apt install -y ${install_pkgs[*]}"
+}
+
+
+## Snaps
+
+#######################################
+# Install selected snaps
+# Arguments
+#   Name of array containing snaps to install
+# Outputs
+#   Prints progress to STDOUT
+#######################################
+install_snaps() {
+  local -n install_snaps="$1"
+
+  step 'Installing snaps'
+  for snap in "${install_snaps[@]}"; do
+    run "sudo snap install $snap"
+  done
+}
+
+
+## Repos
+
+#######################################
+# Extract one field from a repo string
+# Arguments
+#   - Repo JSON string
+#   - Name of field to extract
+# Outputs
+#   Prints field value to STDOUT
+#######################################
+field() {
+  local -r _repo="$1"
+  local -r _field="$2"
+  echo "${_repo}" | jq ".${_field}"
+}
+
+#######################################
+# Construct map of repos to install
+# Arguments
+#   - Name of map to construct (repo name -> repo string)
+#   - Directory containing repo manifest
+# Outputs
+#   Asks user what to do with each repo on STDOUT
+#######################################
+build_repos() {
+  local -n repo_map="$1"
+  local -r dir="$2"
+  local repo_file rep
+
+  step 'Installing repos'
+
+  for repo_file in ${dir}/*; do
+ 
+    # Parse each repo in the file into an array
+    local file_repos=()
+    while read -r repo; do
+      file_repos+=("${repo}")
+    done < <(jq --compact-output '.[]' "${repo_file}")
+
+    # Cycle through and let user select which to install
+    for repo in "${file_repos[@]}"; do
+      echo "${repo}" | jq --raw-output '.'
+      local action="$(ask_action '(I)nstall or (S)kip?' '[IS]')"
+
+      if [[ "${action}" == "I" ]]; then
+        local name="$(field "${repo}" 'name')"
+        repo_map[${name}]="${repo}"
+        printf "Adding %s to list\n" "${name}"
+      fi
+      echo
+    done
+  done
+}
+
+#######################################
+# Install selected repos and execute 
+# post-install scripts.
+# NOTE: requires git, checks out submodules
+# to master.
+# Globals
+#   HOME
+# Arguments
+#   Map of repos to install (repo name -> repo string)
+# Outputs
+#   Prints progress to STDOUT
+#######################################
+install_repos() {
+  local -n repo_map="$1" 
+  local repo_str
+
+  step 'Installing repos'
+  for repo_str in "${repo_map[@]}"; do
+   
+    # Parse each repo into an assoc array using jq
+    local -A repo="($(
+      echo "${repo_str}" | \
+      jq -r '. | to_entries | .[] | "[" + .key + "]=\"" + .value + "\""'
+    ))"
+
+    # Use git to clone repos
+    local target="${repo[location]/#\~/$HOME}"
+    run "git clone ${repo[repo]} ${target} || true"
+
+    # If installation failed, move on to the next
+    if (( $? != 0 )); then
+      err "Error cloning repo ${repo[name]}, aborting"
+      continue
+    fi
+
+    # Handle submodules
+    run "cd ${target}; git submodule update --init --recursive" ;
+    run "cd ${target}; git submodule foreach --recursive git checkout master"
+
+    # Execute any post-install script
+    if [[ -n "${repo[script]}" ]]; then
+      run "( cd ${target} ; ${repo[script]} )"
+    fi
+  done
+}
+
+
+## Scripts
+
+#######################################
+# Display a description of a script
+# Globals
+#   BOLD
+#   NORMAL
+# Arguments
+#   Path to script
+# Outputs
+#   Script header on STDOUT
+#######################################
+print_script() {
+  local -r script="$1"
+  local -r script_name="$(basename "${script}")"
+  local -r script_dir="$(dirname "${script}")"
+  printf '\n%s\n' "---Script: ${script_dir}/${BOLD}${script_name}${NORMAL}"
+}
+
+#######################################
+# Build array of scripts to install
+# Arguments
+#   - Name of array to contain all scripts
+#   - Directory containing scripts
+# Outputs
+#   Asks user what to do about each 
+#   script on STDOUT
+#######################################
+build_scripts() {
+  local -n all_scripts="$1"
+  local -r dir="$2"
+
+  step 'Collecting scripts'
+
+  for script in ${dir}/*; do
+    local script_name="$(basename "${script}")"
+
+    print_script "${script}"
+    printf '%s\n' "$("${script}" --help)"
+    local action="$(ask_action 'Y/n?' '[YN]')"
+
+    if [[ "${action}" == "Y" ]]; then
+      all_scripts+=("${script}")
+    fi
+
+  done
+}
+
+#######################################
+# Install selected scripts. Will pause
+# before each script if INTERACTIVE
+# is set
+# Globals
+#   UBUNTU_SETUP_TODO
+#   INTERACTIVE
+# Arguments
+#   Name of array containing scripts to install
+# Outputs
+#   Prints progress to STDOUT
+#######################################
+install_scripts() {
+  local -n run_scripts="$1"
+
+  step 'Running scripts'
+
+  # Execute all selected scripts
+  for script in "${scripts[@]}"; do
+    
+    print_script "${script}"
+    
+    "${INTERACTIVE}" && read -s -r -p "<Press enter to continue>"$'\n'
+    run "${script}"
+  done
+}
+
+
+## Main
+
+#######################################
+# Perform main script logic
+# Globals
+#   UBUNTU_SETUP_TODO
+#   DO
+#   DRY-RUN
+#   INTERACTIVE
+# Arguments
+#   None
+#######################################
+main() {
+  verify_prereqs
+ 
+  # Empty TODO file at start
+  > "${UBUNTU_SETUP_TODO}"
+  
+  if "${DO[PACKAGES]}"; then
+    local -a pkgs=()
+    build_list pkgs 'packages'
+    install_packages pkgs
+  fi
+  
+  if "${DO[SNAPS]}"; then
+    local -a snaps=()
+    build_list snaps 'snaps'
+    install_snaps snaps
+  fi
+  
+  if "${DO[REPOS]}"; then
+    local -A repos
+    build_repos repos 'repos'
+    install_repos repos
+  fi
+  
+  if "${DO[SCRIPTS]}"; then
+    local -a scripts=()
+    build_scripts scripts 'scripts'
+    install_scripts scripts
+  fi
+  
+  printf '\n%s\n' 'Setup complete!'
+  
+  # Print todo reminder, if TODO file has anything in it
+  local todo_size="$(stat --format=%s "${UBUNTU_SETUP_TODO}")"
+  if (( todo_size > 0 )); then
+    printf '%s\n' '-> Check TODO file for followups!'
+  fi
+}
+
+
+## Option parsing
+declare PARAMS=""
+declare DRY_RUN='false'
+declare INTERACTIVE='false'
+declare -A DO=(  # By default, do all steps
+  [PACKAGES]='true'
+  [SNAPS]='true'
+  [REPOS]='true'
+  [SCRIPTS]='true'
+)
+
+while (( "$#" )); do
+  case "$1" in
+    -h| --help)
+      usage
+      exit 0
+      ;;
+    -d|--dry-run)
+    	DRY_RUN='true'
+      shift 1
+      ;;
+    -i|--interactive)
+      INTERACTIVE='true'
+      shift 1
+      ;;
+    -s|--steps)
+      declare -u steps="$2"
+
+      # Steps are required
+      if [[ -z "${steps}" ]]; then
+        err 'Error: missing arg to --steps.'
+        echo 'Enter one or more of the following, separated by commas:'
+        printf ' %s\n' "${!DO[@]}"
+        exit 1
+      fi
+
+      # If we are setting steps, default to doing none
+      for step in "${!DO[@]}"; do
+        DO[$step]='false'
+      done
+     
+      # For each valid step, mark the DO array val as true
+      for step in "${steps//,/ }"; do
+        if [[ "${DO[$step]+asdf}" ]]; then
+          DO[$step]='true'
+          echo "Adding to pipeline: ${step}"
+        fi
+      done
+      shift 2
+      ;;
+    --) # end argument parsing
+      shift
+      break
+      ;;
+    -*|--*=) # unsupported flags
+      echo "Error: Unsupported flag $1" >&2
+      exit 1
+      ;;
+    *) # preserve positional arguments
+      PARAMS="${PARAMS} $1"
+      shift
+      ;;
+  esac
+done
+# set positional arguments in their proper place
+eval set -- "${PARAMS}"
+
+# Freeze configuration variables
+readonly PARAMS DRY_RUN INTERACTIVE DO
+
+main "$@"
+
