@@ -359,7 +359,7 @@ install_repos() {
 
     # Execute any post-install script
     if [[ -n "${repo[script]}" ]]; then
-      run "${target}/${repo[script]}"
+      run "( cd ${target} ; ${repo[script]} )"
     fi
   done
 }

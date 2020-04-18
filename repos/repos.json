@@ -8,7 +8,7 @@
   {
     "name": "dotfiles",
     "repo": "git@github.com:bclarkx2/dotfiles",
-    "script": "disperse",
+    "script": "./disperse",
     "location": "~/dotfiles"
   },
   {
@@ -20,7 +20,7 @@
   {
     "name": "goto",
     "repo": "git@github.com:bclarkx2/goto",
-    "script": "install.sh",
+    "script": "./install.sh",
     "location": "~/tools/goto"
   },
   {
@@ -32,7 +32,7 @@
   {
     "name": "pwd",
     "repo": "git@github.com:bclarkx2/pwd",
-    "script": "install.sh",
+    "script": "./install.sh",
     "location": "~/tools/pwd"
   }
 ]
