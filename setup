@@ -353,12 +353,17 @@ install_repos() {
       continue
     fi
 
+    ## Check out desired branch
+    if [[ -v repo[branch ]]; then
+      run "cd ${target}; git checkout ${repo[branch]}"
+    fi
+
     # Handle submodules
     run "cd ${target}; git submodule update --init --recursive" ;
     run "cd ${target}; git submodule foreach --recursive git checkout master"
 
     # Execute any post-install script
-    if [[ -n "${repo[script]}" ]]; then
+    if [[ -v repo[script] ]]; then
       run "( cd ${target} ; ${repo[script]} )"
     fi
   done
