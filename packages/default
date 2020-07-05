@@ -20,3 +20,8 @@ tree
 vim
 wmctrl
 xclip
+gnupg-agent
+gnome-chrome-shell
+graphviz
+inotify-tools
+feh
