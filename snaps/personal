@@ -1,5 +1,7 @@
 signal-desktop
-skype --classic
+skype
 slack --classic
 spotify
 vlc
+discord
+zoom-client

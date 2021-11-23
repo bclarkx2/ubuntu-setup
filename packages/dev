@@ -1,4 +1,9 @@
+bash-completion
 cmake
+dbeaver-ce
+docker-ce
 make
+net-tools
+shellcheck
 shellcheck
 traceroute
