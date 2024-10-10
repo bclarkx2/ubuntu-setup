@@ -1,13 +1,15 @@
 adduser
 aptitude
+cheese
 curl
 feh
 git
 gnome-chrome-shell
 gnupg-agent
 graphviz
+imagemagick
 inotify-tools
-jq
+iw
 kazam
 members
 mypaint
@@ -16,6 +18,8 @@ network-manager-l2tp-gnome
 nmap
 openssl
 p7zip-full
+poppler-utils
+qrencode
 rename
 shotwell
 sl
@@ -24,9 +28,9 @@ stow
 texlive
 texlive-lang-english
 tmux
-traceroute
 trash-cli
 tree
 vim
 wmctrl
 xclip
+yubikey-manager

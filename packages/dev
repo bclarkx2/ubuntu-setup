@@ -2,8 +2,11 @@ bash-completion
 cmake
 dbeaver-ce
 docker-ce
+docker-compose-plugin
+jq
 make
 net-tools
-shellcheck
+postgresql
 shellcheck
 traceroute
+yq
