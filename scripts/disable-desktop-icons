@@ -1,0 +1,46 @@
+#!/bin/bash
+
+usage() {
+  printf '%s\n' "Usage: disable-desktop-icons [-h]
+disable-desktop-icons completely disables desktop icons.
+
+where:
+  -h, --help  - show this help text"
+}
+
+main() {
+  # Completely disable desktop icons
+  gnome-extensions disable ding@rastersoft.com
+}
+
+# Option parsing
+declare PARAMS=""
+while (( "$#" )); do
+  case $1 in
+    -h|--help)  # display help message
+      usage
+      exit 1
+      ;;
+    --)  # End argument parsing
+      shift
+      break
+      ;;
+    -*|--*)  # unsupported flags
+      echo "Unsupported flag: $1" >&2
+      usage
+      exit 1
+      ;;
+    *)  # preserve positional arguments
+      PARAMS="${PARAMS} $1"
+      shift
+      ;;
+  esac
+done
+
+# set positional arguments in their proper place
+eval set -- "${PARAMS}"
+
+# Freeze configuration flags
+# readonly SOME_FLAG
+
+main "$@"
