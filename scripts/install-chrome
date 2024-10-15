@@ -55,3 +55,7 @@ sudo dpkg -i "$package_file"
 # Remove package
 rm "$package_file"
 
+# Write TODO to change download location
+printf '%s\n' \
+"TODO: Change download location to a more secure location" \
+>> "${UBUNTU_SETUP_TODO}"

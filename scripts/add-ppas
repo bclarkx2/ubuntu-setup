@@ -36,7 +36,9 @@ done
 # set positional arguments in their proper place
 eval set -- "$PARAMS"
 
-ppas=()
+ppas=(
+  'universe'
+)
 
 for ppa in "${ppas[@]}"; do
   echo "Adding ppa: $ppa"

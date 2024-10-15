@@ -1,8 +1,5 @@
 bash-completion
 cmake
-dbeaver-ce
-docker-ce
-docker-compose-plugin
 jq
 make
 net-tools

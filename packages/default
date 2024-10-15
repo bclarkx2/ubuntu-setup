@@ -4,8 +4,7 @@ cheese
 curl
 feh
 git
-gnome-chrome-shell
-gnupg-agent
+gnome-tweaks
 graphviz
 imagemagick
 inotify-tools
@@ -13,8 +12,6 @@ iw
 kazam
 members
 mypaint
-network-manager-l2tp
-network-manager-l2tp-gnome
 nmap
 openssl
 p7zip-full
@@ -30,7 +27,7 @@ texlive-lang-english
 tmux
 trash-cli
 tree
-vim
+vim-gtk3
 wmctrl
 xclip
 yubikey-manager

@@ -1,0 +1,74 @@
+#!/bin/bash
+
+usage() {
+  printf '%s\n' "Usage: configure-hostname [-h] [hostname]
+configure-hostname sets the hostname of the machine.
+
+where:
+  -h, --help  - show this help text
+  hostname    - the hostname to set"
+}
+
+main() {
+  local hostname="${HOSTNAME}"
+  
+  # Collect hostname from stdin if not provided
+  if [[ -z "${HOSTNAME}" ]]; then
+    read -p "Enter hostname: " hostname
+  fi
+
+  # Set hostname
+  echo sudo hostnamectl set-hostname "${hostname}"
+
+  # Create local bash variable override containing hostname
+  mkdir -p ~/local/dotfiles/.bash_variables.d
+  cat <<EOF > ~/local/dotfiles/.bash_variables.d/login
+#!/bin/bash
+
+export MY_HOSTNAME="${hostname}"
+EOF
+
+  # Display hostname
+  echo "Hostname set to: ${hostname}"
+
+  # Write a todo to restart
+  printf '%s\n' \
+"---HOSTNAME---
+1. Restart to reset ICEAuthority file" \
+  >> "${UBUNTU_SETUP_TODO}"
+}
+
+# Option parsing
+declare PARAMS=""
+declare HOSTNAME=""
+while (( "$#" )); do
+  case $1 in
+    -h|--help)  # display help message
+      usage
+      exit 1
+      ;;
+    --)  # End argument parsing
+      shift
+      break
+      ;;
+    -*|--*)  # unsupported flags
+      echo "Unsupported flag: $1" >&2
+      usage
+      exit 1
+      ;;
+    *)  # preserve positional arguments
+      PARAMS="${PARAMS} $1"
+      shift
+      ;;
+  esac
+done
+
+# set positional arguments in their proper place
+eval set -- "${PARAMS}"
+
+HOSTNAME="$1"
+
+# Freeze configuration flags
+readonly HOSTNAME
+
+main "$@"

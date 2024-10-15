@@ -1,27 +1,32 @@
 #!/bin/bash
 
 usage() {
-  printf '%s\n' "Usage: install-nvm [-h]
-install-nvm installs NVM and the latest node LTS 
+  printf '%s\n' "Usage: configure-tpm [-h]
+configure-tpm gets the tpm tmux plugin manager ready to go.
 
 where:
   -h, --help  - show this help text"
 }
 
 main() {
-  # Install nvm
-  PROFILE=/dev/null bash -c 'curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash'
+  # Install TPM
+  git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 
-  # Refresh bash
-  rb
+  # Start an unattached tmux server
+  tmux start-server
 
-  # Install latest node
-  nvm install --lts 
+  # Create a new session but don't attach to it either
+  tmux new-session -d
+
+  # Execute script that installs plugins
+  ~/.tmux/plugins/tpm/scripts/install_plugins.sh
+
+  # Kill the server (which also kills the session)
+  tmux kill-server
 }
 
 # Option parsing
 declare PARAMS=""
-declare SOME_FLAG='false'
 while (( "$#" )); do
   case $1 in
     -h|--help)  # display help message
@@ -48,7 +53,6 @@ done
 eval set -- "${PARAMS}"
 
 # Freeze configuration flags
-readonly SOME_FLAG
+# readonly SOME_FLAG
 
 main "$@"
-
