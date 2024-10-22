@@ -20,7 +20,7 @@
   {
     "name": "goto",
     "repo": "git@github.com:bclarkx2/goto",
-    "script": "./install.sh",
+    "script": "./install.sh && ./goto --setup",
     "location": "~/tools/goto"
   },
   {
