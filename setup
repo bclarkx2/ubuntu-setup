@@ -138,7 +138,7 @@ verify_prereqs() {
   # Need git over SSH
   run 'sudo apt install git jq'
   echo
-  run 'scripts/generate-ssh-key'
+  run 'prereqs/generate-ssh-key'
 }
 
 
