@@ -1,0 +1,9 @@
+#!/usr/bin/env bash 
+
+result=$(dialog --checklist "Select items:" 0 0 0 \
+  1 "choice 1" on \
+  2 "choice 2" off \
+  3 "choice 3" off \
+  --output-fd 1)
+
+echo $result
