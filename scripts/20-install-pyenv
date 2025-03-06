@@ -33,7 +33,7 @@ main() {
   curl https://pyenv.run | bash
 
   # Refresh bash
-  rb
+  source refresh_bash
 
   # Install latest python
   pyenv install 3:latest

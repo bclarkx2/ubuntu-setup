@@ -13,7 +13,7 @@ main() {
   PROFILE=/dev/null bash -c 'curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash'
 
   # Refresh bash
-  rb
+  source refresh_bash
 
   # Install latest node
   nvm install --lts 

@@ -38,10 +38,10 @@ main() {
   (cd ~/tools && git clone git@github.com:vitalif/grive2)
 
   # Build and install grive
-  ( cd ~/tools && mkdir build)
-  ( cd ~/tools/build && cmake ..)
-  ( cd ~/tools/build && make -j4)
-  ( cd ~/tools/build && sudo make install)
+  ( cd ~/tools/grive2 && mkdir build)
+  ( cd ~/tools/grive2/build && cmake ..)
+  ( cd ~/tools/grive2/build && make -j4)
+  ( cd ~/tools/grive2/build && sudo make install)
 
   ## Ensure needed files exist
   mkdir -p "$(dirname $config_file)"
@@ -105,4 +105,4 @@ done
 # set positional arguments in their proper place
 eval set -- "$PARAMS"
 
-
+main
