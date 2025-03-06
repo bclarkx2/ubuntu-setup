@@ -436,7 +436,7 @@ install_scripts() {
   step 'Running scripts'
 
   # Execute all selected scripts
-  for script in "${scripts[@]}"; do
+  for script in "${run_scripts[@]}"; do
     
     print_script "${script}"
     
