@@ -540,7 +540,7 @@ while (( "$#" )); do
       done
      
       # For each valid step, mark the DO array val as true
-      for step in "${steps//,/ }"; do
+      for step in ${steps//,/ }; do
         if [[ "${DO[$step]+asdf}" ]]; then
           DO[$step]='true'
           echo "Adding to pipeline: ${step}"
